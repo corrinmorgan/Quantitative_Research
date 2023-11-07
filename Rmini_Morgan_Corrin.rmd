@@ -1,0 +1,209 @@
+---
+title: "R Mini Assignment"
+author: "Corrin Morgan"
+---
+
+&nbsp;
+
+##### Question 1:   
+(a)	 Create the following vectors:  
++ a = (8, 9, 10, 11, ..., 20)  
++ b = (30, 29, 28, ..., 18)   
+
+```{r}
+
+#creating vector a
+a <- c(8:20)
+print(a)
+
+#creating vector b
+b <- c(30:18)
+print(b)
+
+
+```
+
+Multiply vectors a and b element-wise and call the result d. 
+
+```{r}
+#multiplying the vectors and calling the result d
+d <- a*b
+print(d)
+
+```
+
+Select subsets of d to identify the following. 
+(b) What are the 4th, 5th, and 6th elements of d? 
+
+```{r}
+#indexing the 4th, 5th, and 6th elements of d
+d[4:6]
+```
+
+(c) What are all of the elements of d which are less than 300? 
+
+```{r}
+
+# indexing the values in d that are less than 300
+d[d<300]
+```
+
+(d) How many elements of d are greater than 350? Use the help function to learn about the function length() and find ways to use it throughout this assignment. 
+
+```{r}
+# length provides the number of values indexed from d that satisfy the input of d>350
+length(d[d>350])
+
+#show what those values are
+print(d[d>350])
+
+```
+
+&nbsp;
+
+##### Question 2: Download the file ‘quakes.csv’ from bcourses and write the R code for the following questions. Make sure to print out the asked for values in your knitted html file.   
+
+(a) Import the csv file into R. 
+
+```{r}
+#use a read.csv command
+quakes <- read.csv("quakes.csv")
+```
+
+(b) Find the mean of the variable ‘mag’
+
+```{r}
+#quakes$mag pulls all of the mag values,
+#na.omit removes the na values
+#mean takes the means of those remaining values
+#stored them as quakes_mean
+quakes_mean <- mean(na.omit(quakes$mag))
+print(quakes_mean)
+```
+
+(c) Find the number of numeric values for the variable ‘mag’ which are greater than the mean. 
+
+```{r}
+#quakes$mag[quakes_mean < quakes$mag] <- this returns the values of the mag column that are greater than the mean WITH the NA values
+
+#omit the NA values and give me the length
+length(na.omit(quakes$mag[quakes_mean < (quakes$mag)]))
+```
+
+(d) Find the standard deviation of the variable ‘stations’
+```{r}
+#give me the standard deviation of the stations variable without the NAs
+sd(na.omit(quakes$stations))
+```
+
+(e) Find the number of missing values for the variable ‘stations’. Then, find the standard deviation of the variable 'stations' only for rows that do not have any missing values (omit the whole row if there is a missing value).
+
+```{r}
+#the number of missing values for the variable stations
+length(quakes$stations[is.na(quakes$stations)])
+
+#create a variable called "complete quakes" that contains all of the complete cases from quakes
+complete_quakes <- quakes[complete.cases(quakes),]
+print(complete_quakes)
+
+#calculate the standard deviation of the stations variable in the new complete_quakes table (all NAs removed)
+sd(complete_quakes$stations)
+```
+
+(f) Find the value of ‘stations’ corresponding to the row with the highest value for depth 
+
+```{r}
+#max(quakes$depth,na.rm = TRUE) finds the maximum value from the depth column without the NA values
+#using it as the index to return the quakes$stations value
+quakes$stations[max(quakes$depth, na.rm = TRUE)]
+```
+
+(g) Create a new string (with "character" class) variable ‘str_impact’ with values as: 
++ ‘Low’ if value of ‘mag’ is less than or equal to 4.9 
++ ‘High’ if value of ‘mag’ is greater than 4.9   
+
+```{r}
+#quakes$str_impact = sets this as a new variable/column
+#as.character() casts the data being added to the data frame as a character class
+#ifelse() sets the values as one of two options
+#quakes$mag <=4.9 indicates what rows (where the mag value is less than 4.9) will be labeled by the first value "Low"
+#"High" is what all of the other values will be labeled as
+quakes$str_impact = as.character(ifelse(quakes$mag<=4.9,"Low","High"))
+
+#show it
+quakes$str_impact
+```
+
+(h) Create a new numeric (with “numeric” class) variable ‘num_impact’ with:
++ 0 if value of ‘mag’ is less than or equal to 4.9 
++ 1 if value of ‘mag’ is greater than 4.9 
+
+Compute its mean. 
+
+```{r}
+#quakes$num_impact = sets this as a new variable/column
+#as.numeric() casts the data being added to the data frame as a numeric class
+#ifelse() sets the values as one of two options
+#quakes$mag <=4.9 indicates what rows (where the mag value is less than 4.9) will be labeled by the first value "0"
+#"1" is what all of the other values will be labeled as
+quakes$num_impact = as.numeric(ifelse(quakes$mag<=4.9,0,1))
+
+#show it
+quakes$num_impact
+
+#calculating the mean of the num impact column (removing the NA values)
+mean(quakes$num_impact, na.rm = TRUE)
+```
+
+(i) Create a new factor variable ‘factor_impact’ with 2 levels:
++ ‘Low’ if value of ‘mag’ is less than or equal to 4.9 
++ ‘High’ if value of ‘mag’ is greater than 4.9 
+
+```{r}
+#quakes$factor_impact = sets this as a new variable/column
+#as.factor() casts the data being added to the data frame as a factor class
+#ifelse() sets the values as one of two options
+#quakes$mag <=4.9 indicates what rows (where the mag value is less than 4.9) will be labeled by the first value "Low"
+#"High" is what all of the other values will be labeled as
+quakes$factor_impact = as.factor(ifelse(quakes$mag<=4.9,'Low','High'))
+
+#show it
+quakes$factor_impact
+```
+
+(j) Create a new numeric variable 'status' that repeats the values 95 through 99 (e.g. row 1 has value 95, row 2 has value 96, row 3 has value 97, row 4 has 98, row 5 has 99, row 6 has 95, etc). Recode all the values of status that have the value 99 as NA. 
+
+```{r}
+#quakes$status = creates the new variable in the quakes data frame
+#rep(95:99) produces repeating values from 95 to 99
+#as.numeric() casts the data types as numeric
+quakes$status = as.numeric(rep(95:99))
+
+#replace the values in quakes$statues that are exactly equal (==) to 99 to NA and store it in the quakes$status variable
+quakes$status <- replace(quakes$status, quakes$status == 99, NA)
+
+#print the entire data frame to show all of the updates in the knit.
+print(quakes)
+```
+
+&nbsp;
+
+##### Question 3: Come up with 2 graphs using ggplot2. You can use either the above quakes dataset or R'a built-in iris dataset, which you can view by running the code chunk below (super easy). 
+
+```{r}
+iris
+```
+
+Try adding colors, labels and other features to at least one of the graphs (refer to https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf). This exercise is meant to give you practice with making charts in R – just make sure your plots are clearly labelled and easy to understand. 
+
+```{r}
+#update.packages ()
+#install.packages("tidyverse")
+```
+
+```{r}
+library(ggplot2)
+ggplot(iris,aes(Sepal.Length,Sepal.Width, color=Species)) + geom_point() + ggtitle("Comparing Sepal Length and Width Measurements in Three Species of Irises") + xlab("Sepal Length in cm") + ylab("Sepal Width in cm")
+ggplot(iris,aes(Petal.Length,Petal.Width, color=Species)) + geom_point() + ggtitle("Comparing Petal Length and Width Measurements in Three Species of Irises") + xlab("Petal Length in cm") + ylab("Petal Width in cm")
+```
+

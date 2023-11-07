@@ -1,0 +1,648 @@
+---
+title: "2023 R Class Exercise"
+author: "Ji Su Yoo"
+output: html_document
+
+---
+# Intro to R Video:
+## RStudio Environment (Help and Environment Panes), Shortcuts 
+## Variables + Data Types
+## Data Structures: Vectors, Factors, Lists, Dataframes
+
+
+# Quick Review
+
+# Vectors
+Create a new code block, create a vector with three numeric values, and print the mean
+```{r}
+a <- c(4,3,2)
+mean(a)
+```
+
+# Factors
+Create a factor variable with any three categorical variables, and corresponding values 
+```{r}
+b <- c(4,3,2)
+b <- factor(b, levels = c(1:3), labels = c("graduated high school", "some college", "graduated college"))
+```
+
+Based on the last lecture, do you remember what kind of variable this educational level question would correspond to in a survey?
+(Answer: Ordered polytomous)
+
+# Lists
+Create a list with 3 details about your favorite animal. Name the three elements of different data types that describe the animal's qualities. Print the list. 
+```{r}
+favorite_animal <- list(name = "turtle",           
+            reptile = TRUE,
+            endangered = TRUE,
+            predator = "sharks",
+            limbs = 4)
+print(favorite_animal)
+```
+Watch those commas!
+
+# Data Frames
+Create a data frame of employee data
+
+```{r}
+emp.data <- data.frame(
+   emp_id = c(741, 882, 293, 410, 312), 
+   emp_name = c("Ryan","Dan","Michelle","Sarah","Gary"),
+   salary = c(623.3,515.2,611.0,729.0,526.5),
+   department = c("HR", "Not Applicable", "Marketing", "Engineering", "Marketing"),
+   hours_worked = c(40, 45, 10, -99, 15), 
+   stringsAsFactors = FALSE
+)
+
+# selecting by column name using the "$" sign
+emp.data$emp_name
+
+# selecting by indexing - supplying arguments for the row and column vector 
+emp.data[emp.data$emp_name=="Ryan",]
+emp.data[emp.data$emp_name=="Ryan", "hours_worked"]
+```
+
+What is the emp_id of the individual with the lowest hours worked? Think through what each of these steps tells you. What class and storage type is outputted? Try: class, typeof, is.vector to familiarize yourself with what the functions output. 
+
+```{r}
+emp.data[,"hours_worked"]
+min(emp.data[,"hours_worked"])
+emp.data$hours_worked==min(emp.data[,"hours_worked"])
+emp.data[emp.data$hours_worked==min(emp.data[,"hours_worked"]),]
+```
+
+IMPT: When asked for any values, please give the specific value, not an entire dataframe or the entire output from an R function. 
+```{r}
+emp.data[emp.data$hours_worked==min(emp.data[,"hours_worked"]),"emp_id"]
+head(emp.data)
+```
+
+# Missing values + Dataframes
+Read carefully!
+
+Missing/unusable data can take many forms. Sometimes, they data can be inputed and stored as blank entries, or may have a special code assigned to them. In looking over your data and meta-data, you may also decide to recode some data as
+NA values. Finally, various R functions may coerce values to NA in your
+dataframe. When we're dealing with missing values, there are no shortcuts. So we should:
+
+1. Think about your analysis and make sure variables are correctly coded to NA. For instance, if -99 refers to no response when you get your survey responses through qualtrics, you should code it to NA if you are interested in calculating the mean value for only the people who responded. 
+
+2. If you are using an R function for analysis, etc, mean(), check if the function used has a na.rm=TRUE argument in the help file (?mean etc.). Make sure to set the argument to true if it does. 
+
+3. In some analyses we will discuss later, you may want
+to drop all rows with missing values in any of the columns (code to do
+so will be covered later in this video). Dropping rows may not be
+appropriate for some analyses, as you might lose too much data.
+
+## Recoding variables in DFs
+Returning to our emp.data dataframe, let's go through the steps to
+recode any missing values as NA.
+
+First, let's take a peek at our data again:
+```{r}
+#You can refresh your memory on the column names and right away if you can see the potential "missing" values. Think about which rows should be considered missing data.
+head(emp.data)
+```
+
+Remember the potential missing values not always going to be at the top of the dataset. You can use the table function to quickly tabulate the existing values to check for codes that might refer to missing values. 
+
+```{r}
+table(emp.data$department)
+#There should be 5 total values for 5 rows, but the column names seem to indicate NAs. 
+table(emp.data$hours_worked)
+#Same with the numeric values.
+```
+
+
+
+You'll notice that under hours_worked, Sarah has "-99" coded, and under department, Dan has "Not Applicable."
+
+If we took the mean of hours_worked, obviously we would get an
+artifically low value. But it's not always obvious if that would be the
+case especially with larger datasets. This low value would still occur
+even if we applied na.rm=TRUE, which removes any values that have been
+coded as NA.
+
+```{r}
+mean(emp.data$hours_worked)
+mean(emp.data$hours_worked, na.rm=TRUE)
+```
+
+Logical checks are very important! If the average hours worked seem off
+to you based on what you would expect to see in the data, or based on
+the headers, or just how you collected and examined the dataset, make
+sure you check to avoid downstream and carryover errors. (Remember,
+there is no answer key in real life research design!)
+
+### How to recode as NA
+
+We have to get into the weeds, which is why it's important to really
+understand the ins and outs of the data you will be collecting and
+working with.
+
+We have to recode the appropriate row and column as NA, i.e.
+
+```{r}
+emp.data[emp.data$hours_worked==-99, "hours_worked"] <- NA 
+emp.data
+```
+
+Now, applying mean gives different values. Without setting the argument na.rm=TRUE, the mean function returns NA as an end result - a precaution the function takes to make sure you are aware of missing values. 
+
+```{r}
+mean(emp.data$hours_worked)
+mean(emp.data$hours_worked, na.rm=TRUE)
+```
+
+Let's do the same and recode Dan's department of "Not applicable". 
+
+```{r}
+emp.data[emp.data$department=="Not Applicable", "department"] <- NA 
+emp.data
+
+#check to see everything is nice and clean and it worked
+table(emp.data$department)
+
+table(emp.data$hours_worked)
+```
+
+### How to ignore NAs in calculations
+
+Now, say we want the mean salary ONLY for employees with non-missing hours worked. How would we do this?
+
+```{r}
+salary_non_missing_hours = emp.data[!is.na(emp.data$hours_worked), "salary"]
+salary_non_missing_hours
+emp.data
+```
+
+Comparing, we can see the returned vector excludes Sarah's salary of 729, because her hours_worked variable is missing.
+
+```{r}
+# We can then pass the vector to the mean function. 
+mean(salary_non_missing_hours)
+mean(salary_non_missing_hours, na.rm=TRUE) 
+# no difference between this call and the one above since there are no missing values
+```
+
+Now, say we want the salary (not just the mean) ONLY for employees with no missing data in ANY of the variables. We can use the na.omit function. 
+
+```{r}
+only.complete.emp.data = na.omit(emp.data)
+only.complete.emp.data
+#emp.data
+```
+Comparing, you can see how the entire row for Dan and Sarah have been removed. Some analyses will require complete data, such as where we compare nested regression models, which we will discuss more later.
+ 
+### How to recode to create variables in DFs
+
+We've already discussed how we might recode specific values where they
+are missing values. Here, I look at how we can recode variables to
+create new variables that we might need for different analyses.
+
+```{r}
+head(emp.data)
+```
+
+For most recodes, I strongly encourage the following approach:
+
+Say you'll like to create a new variable that categorizes salary into
+"Low", "Medium" and "High".
+
+First, recall the importance of understanding the class and type of your
+variables. Since salary is a numeric variable, your row condition uses
+numbers - e.g. 700 and 600. If you are using a character variable as a
+row condition, you would use characters - we will go through an example
+of this below.
+
+```{r}
+emp.data$salary_cat = NA
+ 
+emp.data$salary_cat[emp.data$salary>700] = "High"
+emp.data$salary_cat[emp.data$salary<=700 &emp.data$salary>600] = "Medium"
+emp.data$salary_cat[emp.data$salary<=600] = "Low"
+ 
+#You can use "table" to check that the counts in your recoded variable correspond to what you expect, and "head" to print out values side by side to make sure the recode has been done correctly.
+table(emp.data$salary)
+table(emp.data$salary_cat)
+head(emp.data[, c('salary', 'salary_cat')], 50)
+```
+
+Some functions will require a factor variable. For those, you can
+convert a character variable to a factor variable as easily as follows:
+
+```{r}
+emp.data$fact_cat = factor(emp.data$salary_cat)
+
+# You can perform various checks to make sure the code is doing what you expect. 
+class(emp.data$fact_cat)
+class(emp.data$salary_cat)
+ 
+table(emp.data$salary_cat)
+table(emp.data$fact_cat)
+levels(emp.data$fact_cat)
+ 
+head(emp.data[, c('fact_cat', 'salary_cat')], 50)
+
+```
+
+Say, you want to find the mean hours worked for employees with a
+"Medium" salary.
+
+If we are using salary_cat, which is a character variable, as a row
+condition, we need to add quotation marks to the condition as shown
+below (as opposed to, for instance, a numeric variable where we would
+use numbers).
+
+```{r}
+#easiest way to understand R code is to read it out loud in the following way:
+#in the datafram emp.data [], for the rows that have "medium" in the column emp.data$salary_cat =="Medium", give me the hours worked
+emp.data[emp.data$salary_cat =="Medium", "hours_worked"]
+emp.data
+
+any(is.na(emp.data))
+which(is.na(emp.data))
+```
+
+
+Try it: what happens when you change Medium to High? to Low? What's the mean of the hours worked? (mean of 40 and 10. Verify it's true for yourself.)
+
+```{r}
+mean(emp.data[emp.data$salary_cat =="Medium", "hours_worked"])
+mean(emp.data[emp.data$salary_cat =="High", "hours_worked"])
+mean(emp.data[emp.data$salary_cat =="Low", "hours_worked"])
+
+```
+
+Note, you must always supply the second argument when selecting a subset of a dataframe, i.e. you need the comma, even if the argument is blank after, which selects all t-he columns. See below for what to do and not to do:
+
+```{r}
+emp.data[emp.data$salary_cat =="Medium", ]
+
+## DO NOT DO THIS - you will get unexpected and imprecise results and outputs
+emp.data[emp.data$salary_cat == "Medium" ] 
+
+# DO THIS 
+emp.data[emp.data$salary_cat == "Medium", ] # or
+emp.data[emp.data$salary_cat == "Medium", "hours_worked"]
+
+```
+
+A common command for simple recodes is ifelse. But NEVER use this for
+more than 2 categories, and make sure you've coded NAs correctly. While
+you can technically nest multiple ifelse functions, that makes for
+extremely poor readability and increases the likelihood of recode
+errors.
+
+I recommend using the first method (recording values) and not ifelse for
+more complicated recodes.
+
+```{r}
+emp.data$above_600 = ifelse(emp.data$salary > 600, "Above 600", "Not above 600")
+emp.data
+```
+
+###How to convert Data Types in DFs
+
+Finally, you can also use as.numeric function to ask R to try to convert
+a variable to a numeric type, or as.character to ask R to try to convert
+a variable to a character type. These commands are often useful, for
+instance, if a numeric variable has been incorrectly read by R as a
+character variable due to the inclusion of character codes such as
+"Don't know" or "No data" in a particular column.
+
+You can ask R for help regarding these commands by typing in ?as.numeric
+or ?as.character or ?as.integer into the console or in the code block.
+On the lower right hand pane, you will see the "Help" pane open up with
+information specifically about the command you need help with or need
+more details about. The Help pane is SUPER useful for debugging.
+
+```{r}
+?as.integer
+```
+
+To show how this works as an example, let's create a new column in emp.data with some hypothetical data.
+
+```{r}
+emp.data$tenure = c(10, 5, 6, "Don't know", 3)
+emp.data
+```
+
+Notice that since we use the c generic function, the class and type of emp.data$tenure has been coerced to character, because of the "Don't know" value.
+
+
+```{r}
+class(emp.data$tenure)
+typeof(emp.data$tenure)
+```
+
+Let's now replace "Don't know" with NA. 
+```{r}
+emp.data[emp.data$tenure=="Don't know", "tenure"] = NA
+emp.data
+```
+
+But our class is still character, but we want numeric. We can simply do:
+
+```{r}
+emp.data$numeric_tenure = as.numeric(emp.data$tenure)
+emp.data[, c('tenure', 'numeric_tenure')]
+```
+
+Side by side, you can see the conversion has been done correctly. 
+
+If you are confident of what your code is doing, or have checked it, you can then replace tenure directly as a numeric variable but keep record of what you're doing! 
+
+```{r}
+emp.data$tenure = as.numeric(emp.data$tenure)
+emp.data
+
+class(emp.data$tenure)
+
+typeof(emp.data$tenure)
+
+# You can see now emp.data$tenure has a numeric class and double type, which is what we want. 
+
+# To tidy up, let's delete our "numeric_tenure" variable.
+emp.data$numeric_tenure <- NULL
+emp.data
+```
+
+
+
+#Rmd and knitting 
+When you click *Knit*, an HTML file containing the code and output will be rendered. Try it out right now. When you Knit the notebook, an HTML file containing the code and output will be saved alongside it. *Knit* does run any R code chunks. 
+
+### Knit your document 
+Did you get an error? What does it look like? Let's go through the error below which we can get when we try to knit. 
+
+<!-- Quitting from lines 510-531 [unnamed-chunk-35] (2023_R_class_exercise.rmd) -->
+<!-- Error in `[<-.data.frame`: -->
+<!-- ! missing values are not allowed in subscripted assignments of data frames -->
+<!-- Backtrace: -->
+<!--  1. base::`[<-`(...) -->
+<!--  2. base::`[<-.data.frame`(...) -->
+<!-- Execution halted -->
+
+### R Markdown Help 
+Search here when you get errors while trying to Knit
+https://bookdown.org/yihui/rmarkdown/parameterized-reports.html
+
+RMarkdown Cheatsheet: https://rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf
+
+Mac & Windows Keyboard shortcuts can be found here: https://support.rstudio.com/hc/en-us/articles/200711853-Keyboard-Shortcuts
+
+
+
+
+# In-Class Group Exercises. 
+
+In groups of 4, work on the following problems. You do not need to submit these exercises. 
+
+## 1a) Spot the error! 
+
+In your groups, talk through the errors in the following examples. If you have your environment up, you can try to figure out what is wrong by checking the data. (Use class(), typeof(), table(), print out the data side by side, run each nested snippet to figure out what is going on, etc.) 
+
+We will come together after 10 minutes to discuss. See if you can provide the fix for each problem. 
+ 
+```{r}
+# We'll be using the same dataset for which we've partially modified some values to demonstrate various errors. 
+head(emp.data)
+
+## These are examples of what NOT to do.
+# i. Which employee has the lowest salary?
+emp.data[min(emp.data$salary, na.rm=TRUE), "emp_name"]
+
+# ii. Recode all missing values as "NA" for Department. In this case, let's assume we also want to set "Refuse to Answer" as NA. 
+# emp.data[emp.data$department=="Not Applicable", "department"] = "NA"
+# emp.data[emp.data$department=="Refuse to answer", "department"] = "NA"
+# table(emp.data$department)
+
+# iii. Find mean salary for people with no emp_name.
+emp.data4 = na.omit(emp.data)
+mean(emp.data4$salary)
+
+# iv. Create a df removing all rows with no salary. 
+emp.data5 = emp.data[na.omit(emp.data$salary),]
+
+# v. Create a df containing only the "emp_name" and "department" columns [2 errors]
+# emp.data6 = emp.data[['emp_name','department']]
+```
+
+## 1b) Identify and replace all missing values of NA in the dataframe below. 
+
+Write your code below.
+```{r}
+emp.data <- data.frame(
+   emp_id = c(741, 882, 293, 410, 312), 
+   emp_name = c("Ryan","Dan","","Sarah","Gary"),
+   salary = c(600,515.2,611.0,-99,526.5),
+   department = c("HR", "Not Applicable", "Marketing", "Refuse to answer", "Marketing"),
+   hours_worked = c(40, 45, 10, 18, 15), 
+   stringsAsFactors = FALSE
+)
+```
+
+## 1c) Calculate the mean of hours_worked for employees with positive salaries.  
+
+```{r}
+
+```
+
+## 1d) Try creating the following variables adapting our "Part Time", "Full Time" examples. 
+
+* A string variable with two categories - "Part Time", and "Full Time" 
+* A numeric variable with 0 for Part-Time, 1 for Full-Time.
+* A factor variable with two categories, one for part-time, one for full-time. 
+
+Try out the following commands (use ? to read the documentation)
+
+* factor()
+* as.numeric(), as.character()
+* table(), head(), class(), typeof()
+
+Make sure you use table(), head(), class(), typeof() frequently (as in the above example) to check you've done the conversions correctly. There can be multiple ways to get the desired recode. 
+
+```{r}
+
+```
+
+## 1d) Create a new dataframe that drops any people with missing values for salary.
+```{r}
+
+```
+
+
+# Loading packages and data into R
+
+## Loading packages
+If a package is not already installed in your R environment, first
+install it, then load it in (similar to "import" in python)
+
+Make sure to comment out or delete the install.packages line when
+knitting, otherwise it will throw an error. You only need to run
+install.packages once.
+
+```{r}
+# Comment out to avoid throwing error when knitting to html 
+# install.packages("ggplot2")
+library("ggplot2")
+```
+
+## Loading data
+
+### Loading CSVs
+
+CSVs are files where data is separated by commas (comma separated
+values). Working directories are essentially folders in your computer
+where you have stored files.
+
+Loading CSV's: You can either keep all your CSV files in the default
+working directory (usually the R project folder you downloaded from
+bcourses), or you can set the working directory to whatever folder you
+want and then load it into R that way. Just make sure you know where
+your directories are. Trying to set or get working directories that
+don't exist and/or asking R to retrieve files that are not there will
+throw errors.
+
+```{r}
+getwd()
+setwd("~/Documents/Intro_to_R")
+list.files()
+```
+
+With read.csv() we're essentially importing the CSV file into R.
+
+```{r}
+setwd("~/Documents/Intro_to_R")
+quakes <- read.csv("quakes.csv")
+```
+
+Notice that quakes as a variable is now in your environment on the right side pane of R. Let's check how it was imported:
+  
+```{r}
+class(quakes)
+```
+
+### Loading Tables
+
+read.table() is the primary function you'll be using to read various
+delimiter-separated text files (e.g. commas, semicolons). We use
+read.table() because not all our files will be specifically comma
+delimited. read.csv() is just read.table() with specific options
+outlined (see ?read.csv and compare to ?read.table). Some args:
+
+-header, which tells the function to interpret the first line as a list
+of column names. FALSE by default so set it to TRUE here. -sep, for
+separator. By default, the function will split the data based on any
+whitespace it detects. Depending on your data, you'll most likely want
+to set an explicit separator, such as sep="\t" for tab or sep="," for
+comma. -na.strings for specifying what strings should be interpreted as
+a missing value. So, if your data file happens to use . and -999 as
+missing values, you can pass na.strings=c("-999", "."). c("NA") by
+default.
+
+Simple example
+
+```{r}
+setwd("~/Documents/Intro_to_R")
+goog <- read.table(
+    "goog-daily.txt", 
+    header=TRUE, 
+    sep=","
+)
+```
+
+Complicated example
+
+```{r}
+setwd("~/Documents/Intro_to_R")
+berkeley.temperature <- read.table(
+    "37.78N-122.03W-TAVG-Trend.txt", 
+    blank.lines.skip=TRUE,       # ignores blank lines
+    comment="%",              # removes lines commented out with a %
+    na.strings="NaN"          # changes 'NaN' in .txt file to NA in data frame
+    ) 
+
+#Let's see how to break this down with the help that R provides.
+?read.table()
+
+```
+
+```{r}
+head(berkeley.temperature)
+```
+
+The column names weren't read properly, so we can manually adjust those
+ourselves. For example:
+
+```{r}
+colnames(berkeley.temperature)[1] <- 'year'
+colnames(berkeley.temperature)
+```
+
+```{r}
+head(berkeley.temperature)
+```
+
+
+# Plotting charts
+
+Plotting charts in R can be intuitive depending on the specific function
+used. This section gives you just enough code to try out some functions
+for yourself.
+
+We will revisit plotting functions later in the semester, but you may
+often find plotting diagrams to be a combination of looking up example
+code online, and trial and error.
+
+For some examples, see: <https://ggplot2.tidyverse.org/>
+<https://www.statmethods.net/advgraphs/ggplot2.html>
+
+For a more in-depth introduction:
+<https://www.rdocumentation.org/packages/ggplot2/versions/3.3.2>
+
+Pulling in ggplot2
+
+```{r}
+library(ggplot2)
+```
+
+Plotting a histogram
+
+```{r}
+f <- ggplot(iris, aes(x=Sepal.Length))
+f + geom_histogram()
+```
+
+R gave us a warning about the bin width above, so we can set a different
+one
+
+```{r}
+f + geom_histogram(binwidth=0.5) 
+```
+
+Adding some color
+
+```{r}
+f + geom_histogram(binwidth=0.5, color="white", fill="purple")
+```
+
+Adding a label on the x-axis
+
+```{r}
+f + geom_histogram(binwidth=0.5, color="white", fill="purple") + labs(x="Iris Sepal Length")
+```
+
+If we wanted to add a second variable, we can create an x and y axis.
+Other plots that could be useful: geom_point, geom_jitter, geom_area,
+geom_density, geom_dotplot, geom_bar
+
+```{r}
+f <- ggplot(iris, aes(x=Sepal.Length, y=Sepal.Width))
+f + geom_point()
+```
+
+# Note about working together
+For all your assignments, we encourage you to work with each other in thinking through how we manipulate data using R. It is often easier to figure out any issues in your R code when you talk about your code and your logic with your peers. You can help each other think through any bugs in your code, but please make sure you write all your code yourself. Do not cut and paste chunks of code from each other or from StackOverflow (or any other forum). Use these forums to figure out errors but ultimately answer the question in your own words. At the end of the day, your own learning is affected should you choose to copy paste and take shortcuts. For the final exam, no discussion about the code or the concepts is allowed. 
+
+We did it! 

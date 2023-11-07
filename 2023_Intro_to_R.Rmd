@@ -1,0 +1,1015 @@
+---
+title: "2023 Intro to R"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+#What is this .Rmd file?
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Note: my RStudio font has font ligatures enabled so typing < and - sequentially automatically combines and displays as a combined arrow <-. You can change any appearances in RStudio by going to the RStudio menu bar. Go to Tools -> Global Options -> Appearance.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+## Tour of RStudio
+
+You can see the "data" and "values" in the upper right hand side under "Environment" tab so you can see what's going on. Instead of having to rely on faulty memory, you'll have a history tab as well. There are tutorials too! Lower right hand side, you'll see your local files and
+the help panel.
+
+## Shortcuts in RStudio
+
+If you navigate to the RStudio menu bar at the top of your machine,
+under "Tools" -> "Keyboard Shortcuts Help" you will see a list of all
+the shortcuts available for you to use. Other Mac & Windows shortcuts
+can be found here:
+<https://support.rstudio.com/hc/en-us/articles/200711853-Keyboard-Shortcuts>
+
+Here are a few that are most commonly used.
+
+### Code Blocks
+
+You can use the keyboard shortcut *Command+Option+I* for Macs and Ctrl+Alt+I
+for Windows to start a new code block (see below). These are nice little
+chunks of code to help organize your script.
+
+```{r}
+3+3
+```
+
+
+### Run Code Blocks
+
+*Command+Shift+Return* -- use this shortcut to run the entire block or click on the green right-facing arrow button on the top right corner of the block to run the entire block. You can run the whole block and the answers will appear right below the code block and at the bottom pane in the "Console".
+
+```{r}
+3+3
+2-1
+3+9
+```
+
+### Run Code Lines
+
+*Command+Return* -- will run one line of code in your code block.
+*Ctrl+A* -- will move your cursor to the beginning of code line.
+
+For specific lines of code, I recommend highlighting the line of code and using Command+Return to run the highlighted code, rather than the entire block. This shortcut will be especially useful for debugging.
+
+```{r}
+3 + 3
+2 - 1
+3 + 9
+
+```
+
+If you go to the upper right hand side of this pane with the script
+you'll see a "Run" button. Sometimes, you'll take a step away from your
+computer and you want to run all the code up until the point where you
+left it and if your later code relies on your prior code (e.g. variables
+were assigned), then you need to run the code up above the section where
+you stopped. So use that to make your life easier.
+
+### Comments
+
+Manually type pound signs ## to insert comments. Pound signs ## at the
+beginning of the line automatically turn the rest of the line into a
+comment.
+
+## Mathematical operations 
+R is a Calculator! Basic math operations can be written into a code block and run together or separately.
+
+```{r}
+#this is multiplication or this is math
+3 * 5 - (4 / 2)
+4 - 3 
+```
+####Range, ascending
+
+```{r}
+100:110
+```
+
+####Range, descending
+
+```{r}
+200:190
+
+```
+
+####Repeats
+
+```{r}
+rep(0, 10)
+?rep
+```
+
+
+#Variables in R
+
+Variables are essentially names we give to objects. We can store numbers and values, as well as other types of data objects such as vectors, in a variable. You can name these variables whatever you want (usually words or letters) and assign them to hold these objects. In R, both \<- and = can be used interchangeably for assignment in most scenarios, but R purists advocate \<- for assignment. 
+
+```{r}
+a1 <- 1 + 2
+a2 <- 20 - 3
+a3 <- "child"
+apple <- 10 + 10
+
+a1 + a2
+
+typeof(a1)
+typeof(a2)
+
+class(a1)
+class(a2)
+
+a2
+a3
+apple
+
+a2 + a3
+
+b1 <- TRUE
+b1
+
+```
+
+Not all combinations of words or letters can be assigned as variables. There are requirements for variable names that are considered valid: https://www.tutorialspoint.com/r/r_variables.htm
+
+# Data Type
+
+Since R considers everything like variables as an "object", there is a Data Type and Storage Type of each object. 
+
+Data Type refers to the type of object. *typeof()*  will return the data type of a variable.
+ https://stat.ethz.ch/R-manual/R-devel/library/base/html/typeof.html
+
+Storage Type refers to the internal storage of the object. *mode()* will return the storage mode of a variable.
+https://stat.ethz.ch/R-manual/R-devel/library/base/html/mode.html
+
+Class determines how generic functions may operate with a variable. You can determine the class of a variable and you can also change the class of certain variables (more on that later). *class()* will return the class of the variable. 
+
+Here are some common data types:
+
+*"numeric"* -- a class describing numeric values. Numeric variables are double by default.
+
+*double* -- a numeric storage type where values are stored as a decimal numbers (i.e. double-precision floating point). 
+
+*"integer"* -- a numeric data type where values are whole numbers (this class has an "integer" storage type).
+
+*"character"* -- data type that describes single digit values such as "a" or "z". What we commonly refer to as "strings" (e.g. "blue","cat") are collections of multiple characters. Strings have a character data type.
+
+*"logical"* -- data type commonly refered to as boolean or TRUE/FALSE variables. Logical variables have a "logical" storage type. 
+
+```{r}
+my.numeric <- 42
+my.integer <- 42L
+my.char <- "universe"
+my.logical <- FALSE
+
+typeof(my.numeric)
+typeof(my.integer)
+typeof(my.char)
+typeof(my.logical)
+
+mode(my.numeric)
+mode(my.integer)
+mode(my.char)
+mode(my.logical)
+
+class(my.numeric)
+class(my.integer)
+class(my.char)
+class(my.logical)
+```
+
+Notice they're almost the same output. There are a lot of commonalities between the class, data type, and storage type of a variable. That doesn't mean they're the same thing. 
+
+It is really important to know the class associated with each variable when you're debugging. It's a good habit to check the class when you're  trying to figure out why R is throwing you errors. It's also good to know your variable classes because R may not be telling you certain errors. The program is trying to be helpful and handling your data on the back end, coercing certain variables and treating them like other classes. You can be left unawares of the errors and aaaaaaaaall the consequences and downstream effects.
+
+# Data Structures
+
+Data structures are objects in R that we can manipulate (e.g. make calculations with) and organize our data. Data structures in R include vectors, lists, matrices, data frames, and factors.Data types that allowed within each data structure vary according to the data structure.
+
+*Data Structure*, Dimension, Function, Data Type
+
+*vector*, 1, c(), must the same data type
+*matrix*, 2,	matrix(), must the same data type
+*array*, n,	array(), must the same data type
+(we're probably not going to use *matrix* or *array* in this class)
+
+*"factor"*, "levels", factor(), string or integer 
+
+*list*, 1, list(), any data type
+*data frame*, 2, data.frame(), any data type
+
+# Vectors
+In R, a vector is a sequence of elements with the same data type. We are combining elements and storing them in a vector (hence the "c" in the code). You can assign that vector to a variable and "call it" to work with the values in the vector. Elements must be the same data type!
+
+```{r}
+c(1.1, 2.1, 3.1)
+orange <- c(1.1, 2.1, 3.1)
+orange
+
+class(orange)
+typeof(orange)
+```
+
+```{r}
+c("J", "cat", "dog")
+strawberry <- c("J", "cat", "dog")
+strawberry
+
+class(strawberry)
+typeof(strawberry)
+```
+
+Repeats with a vector
+
+```{r}
+rep(c(1, 2, 3), 5)
+```
+
+Accessing vectors by index uses [] and the first element starts at 1,
+not 0!
+
+```{r}
+vector <- rep(c(7, 8, 9), 10)
+vector
+vector[1]
+```
+
+Accessing the first three items
+
+```{r}
+vector <- rep(c(7, 8, 9), 10)
+vector[1:3]
+```
+
+Useful functions for vectors
+
+```{r}
+x <- c(6, 9, 3, 1, 12, 4, 11, 16, 17, 23, 4)
+length(x)              # length of x
+mean(x)                # mean
+sd(x)                  # standard deviation
+var(x)                 # variance
+max(x)                 # max
+min(x)                 # minimum
+```
+
+Subsetting vectors...will come in handy when working with data frames (another )
+
+```{r}
+x <- 1:6
+x > 3
+x[x > 3]
+```
+
+Also, note that the period "." has no functional role and is often used
+within function and variable names. You will find many example
+code/packages that retain this convention, which can be confusing for
+users coming from other programming languages where a period might
+denote a property or subclass.
+
+```{r}
+x.number <- 5
+# is equivalent to
+x_number <- 5 
+# i.e. just a naming convention
+names_people
+names_places
+names.people
+
+```
+
+So let's consider bringing it all together. We have data types, data structures, and object classes. We can create vectors with multiple elements of the same data type. So the vector can contain either numeric data type, character and logical values and you can assign the vector to a variable. Remember, vectors can only have on data type.
+
+```{r}
+numeric.vector = c(1,2,3,4)
+char.vector = c("a", "b", "c", "d")
+logical.vector = c(TRUE, TRUE, FALSE, FALSE)
+
+class(numeric.vector)
+class(char.vector)
+class(logical.vector)
+
+typeof(numeric.vector)
+typeof(char.vector)
+typeof(logical.vector)
+```
+
+
+# Factors
+
+"Factors" are data structures that take on a limited number of values (i.e.
+categorical variables like "Male" or "Female"). A factor variable is stored as a vector of integers so it has an "integer" storage type but with corresponding character values. 
+
+Factors have "levels", which are the options for that variable (i.e. the possible categories). Again, one of the most common situations you will find factors useful are when you are dealing with variables like "gender" in survey data. See https://www.stat.berkeley.edu/~s133/factors.html
+
+```{r}
+x <- c(1:3, 3:1)
+x
+?factor()
+x <- factor(x, levels = c(1:3), labels = c("gold", "silver", "bronze")) # add levels to the variable
+x
+
+class(x)
+typeof(x)
+```
+
+You can't do math on factors
+
+```{r}
+mean(x)
+```
+
+You can convert your factor to a numeric or string variable, referring
+to the integer codes and labels respectively.
+
+```{r}
+?as.numeric
+x_num <- as.numeric(x)
+is.numeric(x_num)
+x_char <- as.character(x)
+class(x_char)
+```
+
+Additional examples. Note how "factor" has converted the original
+numeric values to integer codes, since factor variables are stored as
+integers. The new integer codes are different from the original numeric
+values.
+
+```{r}
+x <- c(2,3,4,5,2)
+x <- factor(x, levels = 2:5, labels=c("blue", "white", "green", "red"))
+as.numeric(x)
+```
+
+Mini-exercise 1. Add some text and create code snippets (Ctrl Option I)
+in the markdown document. It's good practice to properly document what
+you're doing so future you can figure out what past you was trying to
+do. (Important for debugging!) 2. Try creating a numeric vector of size
+30, of (1, 2, 3) repeated 10 times in one of the code snippets you
+create. Create a character and logical vector while you're at it. Assign
+the vectors to some variable. 3. Find type and class of different
+variables you created. 4. Run your code snippets within your .Rmd
+document with Ctrl+Shift+Enter 3. Try knitting your modified .Rmd file
+to html
+
+
+#Lists
+
+Lists vs. vectors - vectors have to be all of the same data type,
+whereas lists can have different data types.
+
+```{r}
+sample.list <- list(18, "f", TRUE)
+sample.vector <- c(18, "f", TRUE)
+
+
+```
+
+To access a single element in a list, it's better to use [[]] than [],
+because list[] returns another list. So you can use [[i]] to access the
+ith in the list.
+
+Note that the vector converted 18 (and all other elements) to a
+character data type on its own. Check the data type of the sample.vector
+using code and in the environment pane on the upper right hand side too.
+
+```{r}
+sample.list[[1]]
+sample.vector[1]
+
+
+```
+
+Elements in a list can also be named
+
+```{r}
+prof <- list(height = 180,            
+            name = "Coye",
+            rabbits = 5,
+            favorite.number = 3.14,
+            employed = TRUE)
+
+prof
+
+```
+
+You can still use the numbers to access elements, but you can also use
+\$ for column names
+
+```{r}
+prof$rabbits
+```
+
+Lists can also contain lists within them
+
+```{r}
+prof_details = list(height = 180,            
+            name = "Coye",
+            rabbits = 3,
+            favorite.number = 3.14,
+            employed = TRUE,
+            courses.taught = list(
+                list(
+                    name = "quantitative methods",
+                    course.id = "i271b"
+                ),
+                list(
+                    name = "underwater basket weaving",
+                    course.id = "i203"
+                )
+            )
+        )
+```
+
+Mini-exercise 1. Within a new block (Ctrl Option I), try to print out
+the course.id of quantitative methods class by daisy chaining
+name/square bracket operators 2. Find the type and class of different
+pieces of the prof data variable
+
+
+# DataFrames 
+
+Data frames are lists of variables with same number of rows. It's a list of vectors, where each vector (column) is the same length. We'll be using Data Frames a lot. Since we're working with rows and columns, data frames are going to feel similar to spreadsheet or pandas dataframes. 
+
+```{r}
+emp.data <- data.frame(
+   emp_id = c(741, 882, 293, 410, 312), 
+   emp_name = c("Ryan","Dan","Michelle","Sarah","Gary"),
+   salary = c(623.3,515.2,611.0,729.0,526.5),
+   department = c("HR", "Not Applicable", "Marketing", "Engineering", "Marketing"),
+   hours_worked = c(40, 45, 10, -99, 15), 
+   stringsAsFactors = FALSE
+)
+
+class(emp.data)
+typeof(emp.data)
+mode(emp.data) #R stores data frames as lists
+```
+
+The head() function lets you look at the first five rows. tail() from
+the bottom up.
+
+```{r}
+head(emp.data)
+```
+
+The str() function is also useful - it tells you the structure of your
+dataset (rows/columns), plus more info about each column. Similar to
+.info() in pandas.
+
+```{r}
+str(emp.data)
+dim(emp.data)
+```
+
+Since data frames are lists, you can access a specific column with the
+\$. It's the same as [[]]. In the rest of this tutorial, you'll see way
+we access columns using \$ quite often.
+
+```{r}
+emp.data$salary
+
+```
+
+To subset, you can use the approach from earlier - specify the vector
+and then subset that, or a different approach where the first argument
+is the row and the second is the column
+
+```{r}
+emp.data$emp_name[3]
+emp.data[3, "emp_name"]
+
+```
+
+When dealing with variables, it is super helpful to use the "Tab" key.
+There will be a list of variables that can "autocomplete" your code. For
+example, after you start writing a variable name, you can click tab to
+see the column name options in the data frame.
+
+```{r}
+emp.data$emp_name[3]
+emp.data$emp_name[3]
+```
+
+Following the second approach of selecting rows/columns, if you want
+multiple rows or columns, you can pass more than one number in
+
+```{r}
+emp.data[c(1, 2, 3), c("emp_name", "salary")]
+```
+
+Very important - you can filter rows based on the values in a column.
+The first argument inside the brackets is the condition and after the
+comma, you list the columns you want. Listing nothing selects all
+columns.
+
+```{r}
+emp.data[emp.data$salary > 600, ]
+```
+
+You can also include functions like mean() as part of your filtering
+
+```{r}
+emp.data[emp.data$salary < mean(emp.data$salary), ]
+mean(emp.data$salary)
+
+```
+
+The summary() function is another useful one. Below, I called it on one
+column.
+
+```{r}
+summary(emp.data$salary)
+```
+
+R comes with many preloaded datasets you can play around with. data()
+brings up the list of datasets. In our mini-assignment, we'll be working
+with the iris dataset. Let's check it out.
+
+```{r}
+head(iris)
+
+```
+
+Looking at the structure
+
+```{r}
+str(iris)
+summary(iris)
+```
+
+
+# Missing values + Dataframes
+Read carefully!
+
+Missing/unusable data can take many forms. Sometimes, they are stored as
+blank entries, or may have a special code assigned to them. In looking
+over your data and meta-data, you may also decide to recode some data as
+NA values. Finally, various R functions may coerce values to NA in your
+dataframe.
+
+In summary, you should: 1. Think about your analysis and make sure
+variables are correctly coded to NA. For instance, if -99 refers to no
+response when you get your survey responses through qualtrics, you
+should code it to NA if you are interested in calculating the mean value
+for only the people who responded. 
+
+2. If you are using an R function for
+analysis, etc, mean(), check if the function used has a na.rm=TRUE
+argument in the help file (?mean etc.). Make sure to set the argument to
+true if it does. 
+
+3. In some analyses we will discuss later, you may want
+to drop all rows with missing values in any of the columns (code to do
+so will be covered later in this video). Dropping rows may not be
+appropriate for some analyses, as you might lose too much data.
+
+## Recoding variables in DFs
+Returning to our emp.data dataframe, let's go through the steps to
+recode any missing values as NA.
+
+First, let's take a peek at our data again:
+
+```{r}
+#You can just refresh your memory on the column names and right away if you can see the potential "missing" values. Think about which rows should be considered missing data.
+head(emp.data)
+```
+
+But the potential missing values not always going to be at the top of the dataset. You can use the table function to quickly tabulate the existing values to check for codes that might refer to missing values. 
+
+```{r}
+table(emp.data$department)
+# There should be 5 total values for 5 rows, but the row values say otherwise
+
+table(emp.data$hours_worked)
+```
+
+There should be 5 total values for 5 rows, but the numeric row value say otherwise
+
+You'll notice that under hours_worked, Sarah has "-99" coded, and under department, Dan has "Not Applicable."
+
+If we took the mean of hours_worked, obviously we would get an
+artifically low value. But it's not always obvious if that would be the
+case especially with larger datasets. This low value would still occur
+even if we applied na.rm=TRUE, which removes any values that have been
+coded as NA.
+
+```{r}
+
+mean(emp.data$hours_worked)
+mean(emp.data$hours_worked, na.rm=TRUE)
+
+```
+
+Logical checks are very important! If the average hours worked seem off
+to you based on what you would expect to see in the data, or based on
+the headers, or just how you collected and examined the dataset, make
+sure you check to avoid downstream and carryover errors. (Remember,
+there is no answer key in real life research design!)
+
+### How to recode as NA
+
+We have to get into the weeds, which is why it's important to really
+understand the ins and outs of the data you will be collecting and
+working with.
+
+We have to recode the appropriate row and column as NA, i.e.
+
+```{r}
+emp.data[emp.data$hours_worked==-99, "hours_worked"] <- NA 
+emp.data
+```
+
+Now, applying mean gives different values. Without setting the argument na.rm=TRUE, the mean function returns NA as an end result - a precaution the function takes to make sure you are aware of missing values. 
+
+```{r}
+mean(emp.data$hours_worked)
+mean(emp.data$hours_worked, na.rm=TRUE)
+```
+
+Let's do the same and recode Dan's department of "Not applicable". 
+
+```{r}
+emp.data[emp.data$department=="Not Applicable", "department"] <- NA 
+emp.data
+
+#check to see everything is nice and clean and it worked
+table(emp.data$department)
+
+table(emp.data$hours_worked)
+```
+
+### How to ignore NAs in calculations
+
+Now, say we want the mean salary ONLY for employees with non-missing hours worked. How would we do this?
+
+```{r}
+salary_non_missing_hours = emp.data[!is.na(emp.data$hours_worked), "salary"]
+emp.data
+```
+
+Comparing, we can see the returned vector excludes Sarah's salary of 729, because her hours_worked variable is missing.
+
+```{r}
+# We can then pass the vector to the mean function. 
+mean(salary_non_missing_hours)
+mean(salary_non_missing_hours, na.rm=TRUE) # no difference since there are no missing values
+```
+
+Now, say we want the salary (not just the mean) ONLY for employees with no missing data in ANY of the variables. We can use the na.omit function. 
+
+```{r}
+only.complete.emp.data = na.omit(emp.data)
+only.complete.emp.data
+emp.data
+```
+Comparing, you can see how the entire row for Dan and Sarah have been removed. Some analyses will require complete data, such as where we compare nested regression models, which we will discuss more later.
+ 
+### How to recode to create variables in DFs
+
+We've already discussed how we might recode specific values where they
+are missing values. Here, I look at how we can recode variables to
+create new variables that we might need for different analyses.
+
+```{r}
+head(emp.data)
+```
+
+For most recodes, I strongly encourage the following approach:
+
+Say you'll like to create a new variable that categorizes salary into
+"Low", "Medium" and "High".
+
+First, recall the importance of understanding the class and type of your
+variables. Since salary is a numeric variable, your row condition uses
+numbers - e.g. 700 and 600. If you are using a character variable as a
+row condition, you would use characters - we will go through an example
+of this below.
+
+```{r}
+emp.data$salary_cat = NA
+ 
+emp.data$salary_cat[emp.data$salary>700] = "High"
+emp.data$salary_cat[emp.data$salary<=700 &emp.data$salary>600] = "Medium"
+emp.data$salary_cat[emp.data$salary<=600] = "Low"
+ 
+#You can use "table" to check that the counts in your recoded variable correspond to what you expect, and "head" to print out values side by side to make sure the recode has been done correctly.
+table(emp.data$salary)
+table(emp.data$salary_cat)
+head(emp.data[, c('salary', 'salary_cat')], 50)
+```
+
+Some functions will require a factor variable. For those, you can
+convert a character variable to a factor variable as easily as follows:
+
+```{r}
+emp.data$fact_cat = factor(emp.data$salary_cat)
+
+# You can perform various checks to make sure the code is doing what you expect. 
+class(emp.data$fact_cat)
+class(emp.data$salary_cat)
+ 
+table(emp.data$salary_cat)
+table(emp.data$fact_cat)
+levels(emp.data$fact_cat)
+ 
+head(emp.data[, c('fact_cat', 'salary_cat')], 50)
+
+```
+
+Say, you want to find the mean hours worked for employees with a
+"Medium" salary.
+
+If we are using salary_cat, which is a character variable, as a row
+condition, we need to add quotation marks to the condition as shown
+below (as opposed to, for instance, a numeric variable where we would
+use numbers).
+
+```{r}
+#easiest way to understand R code is to read it out loud in the following way:
+#in the datafram emp.data [], for the rows that have "medium" in the column emp.data$salary_cat =="Medium", give me the hours worked
+emp.data[emp.data$salary_cat =="Medium", "hours_worked"]
+emp.data
+```
+
+Try it: what happens when you change Medium to High? to Low? What's the mean of the hours worked? (mean of 40 and 10. Verify it's true for yourself.)
+
+```{r}
+mean(emp.data[emp.data$salary_cat =="Medium", "hours_worked"])
+```
+
+Note, you must always supply the second argument when selecting a subset of a dataframe, i.e. you need the comma, even if the argument is blank after, which selects all t-he columns. See below for what to do and not to do:
+
+```{r}
+emp.data[emp.data$salary_cat =="Medium", ]
+
+# DO NOT DO THIS - you will get unexpected and imprecise results and outputs
+emp.data[emp.data$salary_cat == "Medium" ] 
+
+# DO THIS 
+emp.data[emp.data$salary_cat == "Medium", ] # or
+emp.data[emp.data$salary_cat == "Medium", "hours_worked"]
+
+```
+
+A common command for simple recodes is ifelse. But NEVER use this for
+more than 2 categories, and make sure you've coded NAs correctly. While
+you can technically nest multiple ifelse functions, that makes for
+extremely poor readability and increases the likelihood of recode
+errors.
+
+I recommend using the first method (recording values) and not ifelse for
+more complicated recodes.
+
+```{r}
+emp.data$above_600 = ifelse(emp.data$salary > 600, "Above 600", "Not above 600")
+emp.data
+```
+
+###How to convert Data Types in DFs
+
+Finally, you can also use as.numeric function to ask R to try to convert
+a variable to a numeric type, or as.character to ask R to try to convert
+a variable to a character type. These commands are often useful, for
+instance, if a numeric variable has been incorrectly read by R as a
+character variable due to the inclusion of character codes such as
+"Don't know" or "No data" in a particular column.
+
+You can ask R for help regarding these commands by typing in ?as.numeric
+or ?as.character or ?as.integer into the console or in the code block.
+On the lower right hand pane, you will see the "Help" pane open up with
+information specifically about the command you need help with or need
+more details about. The Help pane is SUPER useful for debugging.
+
+```{r}
+?as.integer
+```
+
+To show how this works as an example, let's create a new column in emp.data with some hypothetical data.
+
+```{r}
+emp.data$tenure = c(10, 5, 6, "Don't know", 3)
+emp.data
+```
+
+Notice that since we use the c generic function, the class and type of emp.data$tenure has been coerced to character, because of the "Don't know" value.
+
+
+```{r}
+class(emp.data$tenure)
+typeof(emp.data$tenure)
+```
+
+Let's now replace "Don't know" with NA. 
+```{r}
+emp.data[emp.data$tenure=="Don't know", "tenure"] = NA
+emp.data
+```
+
+But our class is still character, but we want numeric. We can simply do:
+
+```{r}
+emp.data$numeric_tenure = as.numeric(emp.data$tenure)
+emp.data[, c('tenure', 'numeric_tenure')]
+```
+
+Side by side, you can see the conversion has been done correctly. 
+
+If you are confident of what your code is doing, or have checked it, you can then replace tenure directly as a numeric variable.
+
+```{r}
+emp.data$tenure = as.numeric(emp.data$tenure)
+emp.data
+
+class(emp.data$tenure)
+
+typeof(emp.data$tenure)
+
+# You can see now emp.data$tenure has a numeric class and double type, which is what we want. 
+
+# To tidy up, let's delete our numeric_tenure variable.
+emp.data$numeric_tenure <- NULL
+emp.data
+```
+
+# Loading packages and data into R
+
+##Loading packages
+If a package is not already installed in your R environment, first
+install it, then load it in (similar to "import" in python)
+
+Make sure to comment out or delete the install.packages line when
+knitting, otherwise it will throw an error. You only need to run
+install.packages once.
+
+```{r}
+# Comment out to avoid throwing error when knitting to html 
+# install.packages("ggplot2")
+library("ggplot2")
+```
+
+## Loading data
+
+### Loading CSVs
+
+CSVs are files where data is separated by commas (comma separated
+values). Working directories are essentially folders in your computer
+where you have stored files.
+
+Loading CSV's: You can either keep all your CSV files in the default
+working directory (usually the R project folder you downloaded from
+bcourses), or you can set the working directory to whatever folder you
+want and then load it into R that way. Just make sure you know where
+your directories are. Trying to set or get working directories that
+don't exist and/or asking R to retrieve files that are not there will
+throw errors.
+
+```{r}
+getwd()
+setwd("~/Documents/Intro_to_R")
+list.files()
+```
+
+With read.csv() we're essentially importing the CSV file into R.
+
+```{r}
+setwd("~/Documents/Intro_to_R")
+quakes <- read.csv("quakes.csv")
+```
+
+Notice that quakes as a variable is now in your environment on the right side pane of R. Let's check how it was imported:
+  
+```{r}
+class(quakes)
+```
+
+### Loading Tables
+
+read.table() is the primary function you'll be using to read various
+delimiter-separated text files (e.g. commas, semicolons). We use
+read.table() because not all our files will be specifically comma
+delimited. read.csv() is just read.table() with specific options
+outlined (see ?read.csv and compare to ?read.table). Some args:
+
+-header, which tells the function to interpret the first line as a list
+of column names. FALSE by default so set it to TRUE here. -sep, for
+separator. By default, the function will split the data based on any
+whitespace it detects. Depending on your data, you'll most likely want
+to set an explicit separator, such as sep="\t" for tab or sep="," for
+comma. -na.strings for specifying what strings should be interpreted as
+a missing value. So, if your data file happens to use . and -999 as
+missing values, you can pass na.strings=c("-999", "."). c("NA") by
+default.
+
+Simple example
+
+```{r}
+setwd("~/Documents/Intro_to_R")
+goog <- read.table(
+    "goog-daily.txt", 
+    header=TRUE, 
+    sep=","
+)
+```
+
+Complicated example
+
+```{r}
+setwd("~/Documents/Intro_to_R")
+berkeley.temperature <- read.table(
+    "37.78N-122.03W-TAVG-Trend.txt", 
+    blank.lines.skip=TRUE,       # ignores blank lines
+    comment="%",              # removes lines commented out with a %
+    na.strings="NaN"          # changes 'NaN' in .txt file to NA in data frame
+    ) 
+
+#Let's see how to break this down with the help that R provides.
+?read.table()
+
+```
+
+```{r}
+head(berkeley.temperature)
+```
+
+The column names weren't read properly, so we can manually adjust those
+ourselves. For example:
+
+```{r}
+colnames(berkeley.temperature)[1] <- 'year'
+colnames(berkeley.temperature)
+```
+
+```{r}
+head(berkeley.temperature)
+```
+
+
+
+# Plotting charts
+
+Plotting charts in R can be intuitive depending on the specific function
+used. This section gives you just enough code to try out some functions
+for yourself.
+
+We will revisit plotting functions later in the semester, but you may
+often find plotting diagrams to be a combination of looking up example
+code online, and trial and error.
+
+For some examples, see: <https://ggplot2.tidyverse.org/>
+<https://www.statmethods.net/advgraphs/ggplot2.html>
+
+For a more in-depth introduction:
+<https://www.rdocumentation.org/packages/ggplot2/versions/3.3.2>
+
+Pulling in ggplot2
+
+```{r}
+library(ggplot2)
+```
+
+Plotting a histogram
+
+```{r}
+f <- ggplot(iris, aes(x=Sepal.Length))
+f + geom_histogram()
+```
+
+R gave us a warning about the bin width above, so we can set a different
+one
+
+```{r}
+f + geom_histogram(binwidth=0.5) 
+```
+
+Adding some color
+
+```{r}
+f + geom_histogram(binwidth=0.5, color="white", fill="purple")
+```
+
+Adding a label on the x-axis
+
+```{r}
+f + geom_histogram(binwidth=0.5, color="white", fill="purple") + labs(x="Iris Sepal Length")
+```
+
+If we wanted to add a second variable, we can create an x and y axis.
+Other plots that could be useful: geom_point, geom_jitter, geom_area,
+geom_density, geom_dotplot, geom_bar
+
+```{r}
+f <- ggplot(iris, aes(x=Sepal.Length, y=Sepal.Width))
+f + geom_point()
+```

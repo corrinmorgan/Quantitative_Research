@@ -1,0 +1,415 @@
+---
+title: "Lab2_Morgan_Corrin"
+author: "Corrin Morgan"
+date: "2023-10-29"
+output: html_document
+---
+
+Loading in the Data
+
+```{r}
+## first loaded the data into R
+load("/Users/corrinmorgan/Desktop/GSS.rdata")
+data <- lab2_GSS
+
+#check the data (column names)
+#head(data)
+
+```
+
+Question 1: Examine the age variable.
+
+From the codebook, what are the value(s) of age, if any, that do not correspond to ages of respondents? 
+```{r}
+
+## The Codebook Data --> Variable Range for age: p. 3269 
+## Ranges 10-19, 20-29, 30-39, 40-49, 50-59, 60-69, 70-79, 80+
+
+#checking all the unique values in the actual column
+print(sort(unique(data$age), decreasing = FALSE))
+
+# "99" values don't make sense. Probably need to recode to NA.
+
+```
+
+
+Question 2: Error Checking - Using the GSS dataset
+
+Recode any value(s) that do not correspond to age as NA. Leave any values that correspond to an ‘age equal or greater than’ a specific age. What is the mean of the age variable when you properly account for missing values? Do not round up or round down your number. 
+```{r}
+#show the mean before the recode
+print(mean(data$age, na.rm = TRUE))
+# answer is 50.92536
+
+#recode the 99 to NA
+data$age <- replace(data$age, data$age == 99, NA)
+
+#check the new mean
+print(mean(data$age, na.rm=TRUE))
+# answer is 50.76652
+```
+
+Question 3: Produce a QQ plot for the age variable.
+
+(Upload your screenshot directly into the text box below by following the instructions at the beginning of this form. Make sure to double check that you can actually see the image you uploaded in the text box below.)
+```{r}
+#check to see the inputs for QQ plot
+?qqplot()
+
+#need to use QQ norm and QQ line to create the plot
+qqnorm(data$age)
+qqline(data$age)
+
+```
+
+Question 4: Explain what a QQ plot is, and how it is interpreted.
+
+```{r}
+
+# A Quantile-Quantile plot or QQ plot is a model used to test the normality of the dataset. In an ideal interpretation, this graph would display the degree to which the data follows a typical normal distribution. The "straighter" the line that the data points make against the QQ line (resembling a perfect positive correlation line), the more normally distributed the values will likely be.
+
+```
+
+Question 5: Using your QQ plot information, is age normal?
+```{r}
+
+# Somewhat? This is difficult to tell. The majority of the data does follow the QQ Line which indicates that there is some form of normality as most of the data points towards the center of the plot fit the line pretty squarely. However, the curvature of the line at the tails would suggest that there is some degree of "abnormality" if that's the correct term. I would say it is not normal. Just because of the tail data. It might be a flatter distribution.  
+```
+
+Question 6: How precisely do you know from the QQ plot whether the age variable is not or is normal?
+
+```{r}
+
+# Not precisely. That is the issue with models. They don't paint a complete picture of what is happening with the data. From what I can tell, I would say that age is not normally distributed but I may be incorrect. 
+
+```
+
+Question 7: Produce a histogram for the age variable and upload a screenshot using this text field.
+
+```{r}
+#histogram with standard number of breaks:
+hist(data$age)
+
+#histogram with approximated breaks closer to the age ranges (10-19, 20-29, etc.)
+hist(data$age, breaks = 8)
+
+```
+
+Question 8: 
+Using the histogram information, what can you say about the distribution of age?
+
+```{r}
+
+# Perhaps less normally distributed than the QQ plot would indicate.  It has a significant dip in the middle (around the 40s) that shows the distribution is not normal. 
+
+```
+
+
+Question 9: Perform a Shapiro-Wilk test on the age variable. What is the precise null and alternative hypothesis for your test?
+
+```{r}
+shapiro.test(data$age)
+
+# the null hypothesis is that the distribution is normal. (the distribution of the age variable will be the same as a normal distribution)
+# the alternative hypothesis is that the distribution is not normal. (the distribution of the age variable will not be the same as a normal distribution)
+
+```
+
+Question 10: What is your p-value? Do not round up or round down your number. 
+
+```{r}
+
+#W = 0.97158, p-value = 2.555e-12
+2.555e-12
+
+```
+
+Question 11: What is your specific conclusion based on your p-value?
+
+```{r}
+
+# Reject the null hypothesis. The distribution is not normal! 
+
+```
+
+Question 12: What is the variance of age for people whose family income in 2015 (income16) was greater than or equal to $90,000? Do not round up or round down your number. 
+
+```{r}
+
+# Var: income16 info on page 231 of codebook 
+
+# ranges = $90,000 or higher is 22 through 26, 
+# refused = 27
+# Dont know = 98
+# No answer = 99
+# Not Applicable = 0
+
+#create a column in the data frame called (income_above90k) that has a 1 in the column where the value is within the range 22 to 26, and all other values are set to NA. 
+data$income_above90k = as.integer(ifelse(data$income16 >= 22 & data$income16 <= 26,1,NA ))
+
+#determine the average age of people with an income of 90k+ 
+mean(data$age*data$income_above90k, na.rm = TRUE)
+#answer is 50.29048
+
+#find the variance of that data (without the NAs --> values that did not satisfy the criteria)
+var(data$age * data$income_above90k, na.rm=TRUE)
+# answer is 180.8674
+
+#check the standard deviation to better interpret the values --> The majority of the data would be within one standard deviation from the mean. 
+sd(data$age * data$income_above90k, na.rm=TRUE)
+#answer is 13.44869 (Which means most people making 90k in this data set were 50 plus or minus about 13 years... like 37 - 63 years old)
+
+
+```
+
+Question 13: What is the variance of age for people whose family income in 2015 was less than $90,000? Do not round up or round down your number. 
+
+(Hint: you will need to create a recode from the “income16” variable, taking into account missing values. As you did with age, leave any values that correspond to an ‘income that is equal to or greater than’ a specific number.)
+
+```{r}
+#less than 90k would be 1-21
+
+# print(data$income16)
+
+#create a column that marks the income below 90k as a 1 and all other values as NA. 
+data$income_below90k = as.integer(ifelse(data$income16 >= 1 & data$income16 <=21,1,NA ))
+
+#check the mean
+mean(data$age*data$income_below90k, na.rm = TRUE)
+#answer is 50.19903
+
+#check the variance
+var(data$age * data$income_below90k, na.rm=TRUE)
+#answer is 352.1759
+
+#check the standard deviation
+sd(data$age * data$income_below90k, na.rm=TRUE)
+#answer is 18.76635 (which means that there is a greater spread of the datapoints for those who make less than 90k. The majority of the people are between the ages of around 31 - 69... a bigger range) 
+
+```
+
+
+Question 14: Perform a Levene’s test for the age variable grouped by whether their family income in 2015 (income16) was greater than or equal to $90,000, or less than $90,000. Remember you’ll need to install and load the “car” package in order to use the leveneTest() function.
+
+What is the precise null and alternative hypothesis for this test?
+
+```{r}
+#install.packages("car")
+library(car)
+#install.packages("dplyr")
+library(dplyr)
+
+
+#add a column to the data frame called income_group that marks where the respondent is above or below (creating groups!)
+data <- mutate(data, income_group = case_when(
+  income_above90k == 1 ~ as.factor("above"),
+  income_below90k == 1 ~ as.factor("below")
+))
+
+#Levene Test needs age as first input and the category I made as the second input, then center = mean
+leveneTest(data$age, data$income_group, center=mean)
+
+# the null hypothesis: the variances of the two groups are equal.
+# the alternative hypothesis: the variance of the two groups are not equal.
+
+```
+
+
+Question 15: What is your p-value? Do not round up or round down your number. 
+
+```{r}
+#4.216e-14
+```
+
+
+Question 16: What is your specific conclusion based on your P-value?
+
+
+
+```{r}
+
+# Because the p-value is highly significant, the variance for the two groups (above and below) are different. Even though I determined earlier that the variance was difference, the Levene test does not provide information (to my understanding) about the nature of the difference of the variance in the same way that I identifying the individual variances of the two groups did. I would imagine there is a quantitative research scenario where the sheer difference in variance as reported by the Levene test would provide insights to a research topic. 
+
+```
+
+
+Question 17: Produce a single plot with two probability density distributions of age by those whose family income in 2015 (income16) was greater than or equal to $90,000, or less than $90,000. Make sure this plot is well formatted for a report (e.g. readable, labels, titles, no missing data showing, etc.) 
+
+(Upload your screenshot directly into the text box below by following the instructions at the beginning of this form. Make sure to double check that you can actually see the image you uploaded in the text box below.)
+
+```{r}
+# install.packages("ggplot2")
+library("ggplot2")
+# install.packages("tidyverse")
+library("tidyverse")
+
+#create two variables that show the ages of the people in each group 
+below90k <- data$age*data$income_below90k
+above90k <- data$age*data$income_above90k
+
+
+#create a dataframe of each with age as the column name
+age <- as.numeric(c(na.omit(below90k)))
+y1 <- data.frame(age)
+
+age <- as.numeric(c(na.omit(above90k)))
+y2 <- data.frame(age)
+
+#Add a group name column to remember which group they are a part of when we combine them
+
+y1$group <- 'below'
+y2$group <- 'above'
+
+#look at the data frames to make sure I did it right. 
+head(y1)
+head(y2)
+
+#create a master comparison dataframe to product the plot from
+compare <- rbind(y1,y2)
+
+#take a peak at it
+#compare
+
+
+#create the plot, add the labels, and the title. Make it nice. 
+plot_income_age <- ggplot() + geom_density(data=compare, aes(x=age, group=group, color=group),alpha=0.5, adjust=2) + 
+  xlab("Ages of Respondents") +
+  ylab("Probability Density") +
+  theme_classic() +
+  ggtitle("Probability Distribution of Age by Income Below and Above $90,000")
+
+#relabel the legend and show the plot
+plot_income_age + scale_color_discrete(name="Income Groups", breaks = c("above","below"), labels = c("Income Above 90k", "Income Below 90k"))
+
+ 
+
+
+```
+
+
+Question 18:
+Write a line or two interpreting any differences in the two distributions. 
+
+```{r}
+
+#For those making incomes below 90k, the more platykurtic line indicates a wider spread of ages which may suggest that there is a (more) even probability that people from any age range make less than 90k. For those who reported making more than 90k, there is a higher probability that their age is closer to the mean age (which is around 50 or so) as the distribution is more normal. 
+
+```
+
+Question 19: 
+From the GSS dataset, use polint (a Likert variable for “How interested would you say you personally are in politics?”) and a second variable (of any type) of interest to you. 
+
+If you wish, you may recode one or both of the variables in an appropriate way. Produce a report-ready plot or visualization using ggplot2 that allows you to look at your two variables in an interesting or informative way. 
+
+Please use at least 2 of the following in your plot (be creative!)
+
+- faceting:  visually represent differences between two or more groups (e.g. differentiate by color, lines, shapes, transparency, etc.)
+- alter positioning (e.g. jitter, dodge, stack, etc.)
+- altering the theme (e.g., color customizations, etc).
+
+(Upload your screenshot directly into the text box below by following the instructions at the beginning of this form. Make sure to double check that you can actually see the image you uploaded in the text box below.)
+
+```{r}
+
+# My Terrible Hypothesis: I predict that the probability distribution of political interest will be the same among the three identified racial categories. Let's find out.  
+
+#POLINT --> p. 2141 in Codebook
+
+# Very Interested --> 1
+# Fairly Interested --> 2
+# Somewhat interested --> 3
+# Not Very interested --> 4
+# Not at all Interested --> 5
+# Can't choose --> 8
+# No Answer --> 9
+# Not applicable --> 0
+
+#check the unique values of polint
+print(sort(unique(data$polint), decreasing = FALSE))
+# they match what's in the codebook... nothing looks abnormal
+
+#recode the zeros as NA
+data$polint <- replace(data$polint, data$polint == 0, NA)
+
+#in fact, I'm just gonna recode everything so it only focuses on those with a reported interest level for convenience. I know that no answer and can't choose are valid but they will be omitted for this analysis. 
+data <- mutate(data, polint_recode = case_when(
+  polint == 1 ~ as.factor("Very"),
+  polint == 2 ~ as.factor("Fairly"),
+  polint == 3 ~ as.factor("Somewhat"),
+  polint == 4 ~ as.factor("Not Very"),
+  polint == 5 ~ as.factor("Not at all"),
+  polint == 8 ~ as.factor(NA),
+  polint == 9 ~ as.factor(NA)
+))
+
+# RACE --> p. 203 in Codebook
+
+#White --> 1
+#Black --> 2
+#Other --> 3
+
+#check the values
+print(sort(unique(data$race), decreasing = FALSE))
+#look good
+
+#recode them to white, black, and other
+data <- mutate(data, race_recode = case_when(
+  race == 1 ~ as.factor("white"),
+  race == 2 ~ as.factor("black"),
+  race == 3 ~ as.factor("other")
+))
+
+#make two separate dataframes
+race <- data.frame(data$race_recode)
+polint <- data.frame(data$polint_recode)
+
+#combine them and remove the NA values
+race_polint <- na.omit(cbind(race, polint))
+
+#create the plot, label it, make it look pretty. 
+plot_race_polint <- ggplot() + geom_density(data=race_polint, aes(x=data.polint_recode, group=data.race_recode, color=data.race_recode), adjust=2) + 
+  xlab("Reported Level of Political Interest") +
+  ylab("Probability Density") +
+  theme_classic() +
+  ggtitle("Probability Distribution of Political Interest by Racial Categorty")
+
+#relabel the legend 
+plot_race_polint + scale_color_discrete(name="Racial Categories", breaks = c("white","black","other"), labels = c("White", "Black", "Other"))
+
+```
+
+
+```{r}
+#create a bar graph version just to see
+g_race_polint <- ggplot(data=race_polint, aes(data.polint_recode, group = data.race_recode, color = data.race_recode, fill =  data.race_recode)) 
+r <- g_race_polint + geom_bar(position = "dodge", width = 0.5) + theme_classic() +  
+  xlab("Reported Level of Political Interest") +
+  ylab("Number of Responses (Count)") +
+  ggtitle("Count of Political Interest by Racial Category") + 
+  guides(color=FALSE)
+
+r + scale_fill_discrete(name="Racial Categories", breaks = c("white","black","other"), labels = c("White", "Black", "Other")) 
+
+# idk why I have two legends... also, they asked a lot of white people. 
+
+```
+
+
+```{r}
+#getting creative just because the polar graphs are cool to me! 
+g_race_polint <- ggplot(data=race_polint, aes(data.polint_recode, group = data.race_recode, fill = data.race_recode)) 
+r <- g_race_polint + geom_bar(position = "dodge") + theme_minimal()
+r + coord_polar(theta = "x", direction=1 ) 
+
+#pretty useless
+```
+
+
+Question 20:
+Write a short paragraph describing what your chosen plot or graphic shows about your variables (be descriptive!). 
+
+```{r}
+# I did two graphs to assess the hypothesis. In the first graph, I noticed a slightly positive skew for white and black respondents suggesting that both groups reported being more interested versus not... whereas the other category has less skew and is more leptokurtic, suggesting that they may be more strongly "in the middle". The second graph shows the actual counts of the responses by racial group to show that the data pool has a significant difference in the number of responses in each group. I am curious to determine if we had an equal amount of each racial group whether the probability distributions would differ more. The verdict is still out. 
+```
+
+
