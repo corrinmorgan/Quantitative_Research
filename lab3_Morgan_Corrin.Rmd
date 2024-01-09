@@ -1,0 +1,590 @@
+Lab 3 - Corrin Morgan
+
+
+
+Create a new factor variable, degree_factor, by recoding the values from degree. For degree_factor, referring to the codebook, set “Lt high school” and “High school” to “HIGH SCHOOL OR LESS”, “Junior college” to “2-YEAR COLLEGE”,  “Bachelor” and "Graduate" to “4-YEAR COLLEGE OR MORE”. All other values should be set to NA for your degree_factor. Use function table() to make sure you’ve created your degree_factor variable correctly. Include a screenshot of the table of the new degree_factor variable. 
+
+
+```{r}
+# load the data in and save a duplicate so I can refer back to the original data in case of an issue
+load('Lab3_GSS.rdata')
+data <- lab3_GSS
+
+#check the data
+#head(data)
+
+#check the values in the degree column
+#print(sort(unique(data$degree), decreasing = FALSE))
+#values are : 0, 1, 2, 3, 4, 9
+
+#Codebook data: (page 182)
+
+# 0 - Less than High School
+# 1 - High School
+# 2 - Associate/Junior College
+# 3 - Bachelor's
+# 4 - Graduate
+# 8 - Don't Know
+# 9 - No Answer
+# 7 - Not Applicable
+
+
+#install tidyverse
+#install.packages("tidyverse")
+library("tidyverse")
+
+#create the degree_factor column with 0 & 1 as high school or less, 2 as 2-year college, and 3 and 4 as 4-year college or more... the rest are NA. 
+data <- mutate(data, degree_factor = case_when(
+  degree == 0 ~ as.factor("HIGH SCHOOL OR LESS"),
+  degree == 1 ~ as.factor("HIGH SCHOOL OR LESS"),
+  degree == 2 ~ as.factor("2-YEAR COLLEGE"),
+  degree == 3 ~ as.factor("4-YEAR COLLEGE OR MORE"),
+  degree == 4 ~ as.factor("4-YEAR COLLEGE OR MORE"),
+  degree == 8 ~ as.factor(NA),
+  degree == 9 ~ as.factor(NA),
+  degree == 7 ~ as.factor(NA)
+))
+
+table(data$degree_factor)
+```
+
+
+
+Next, create a new factor variable, news_factor, from the  variable newsfrom. Your news_factor variable should only have 4 categories – “The internet”, “TV ”, "Newspapers" and “All Other Sources”.
+
+"All Other Sources” should include all valid categories that do not fall into “The internet”, "TV", and "Newspapers".
+
+“Don’t know”, “No answer”, and “Not applicable” should be set to NA. You should run the function table(news_factor, news_from) to check you’ve done the recode correctly. Include a screenshot of the table output, making sure it is formatted in a way that is easy to read.
+
+```{r}
+
+#Codebook data: (page 1773)
+
+# 0 - Not Applicable --> NA
+# 1 - Newspaper --> Newspapers
+# 2 - Magazines --> All Other Sources
+# 3 - The Internet --> The internet
+# 4 - Books/Other Printed Material --> All Other Sources
+# 5 - TV --> TV
+# 6 - Radio --> All Other Sources
+# 7 - Government Agencies --> All Other Sources
+# 8 - Family --> All Other Sources
+# 9 - Friends/Colleagues --> All Other Sources
+# 10 - Other (Specify) --> All Other Sources
+# 98 - Don't Know --> NA$
+# 99 - No answer --> NA
+
+
+data <- mutate(data, news_factor = case_when(
+  newsfrom == 0 ~ as.factor(NA),
+  newsfrom == 1 ~ as.factor("Newspapers"),
+  newsfrom == 2 ~ as.factor("All Other Sources"),
+  newsfrom == 3 ~ as.factor("The internet"),
+  newsfrom == 4 ~ as.factor("All Other Sources"),
+  newsfrom == 5 ~ as.factor("TV"),
+  newsfrom == 6 ~ as.factor("All Other Sources"),
+  newsfrom == 7 ~ as.factor("All Other Sources"),
+  newsfrom == 8 ~ as.factor("All Other Sources"),
+  newsfrom == 9 ~ as.factor("All Other Sources"),
+  newsfrom == 10 ~ as.factor("All Other Sources"),
+  newsfrom == 98 ~ as.factor(NA),
+  newsfrom == 99 ~ as.factor(NA)
+))
+
+
+table(data$news_factor)
+
+```
+
+
+Now that you have your new factor variables, conduct a Chi-square test of independence to examine the association between degree_factor and news_factor. Also look back at the class example and run the CrossTable() function to examine the cross-table. Include a screenshot of the crosstable. 
+
+
+```{r}
+#load the example libraries
+
+#install.packages("car")
+library(car)
+#install.packages("gmodels")
+library(gmodels)
+#install.packages("lsr")
+library(lsr)
+
+
+#look at the table first?
+actual <- table(data$degree_factor, data$news_factor)
+actual
+
+```
+
+```{r}
+#run chi-square test
+cs = chisq.test(data$degree_factor, data$news_factor)
+
+#look at chi-square test results
+cs
+```
+
+```{r}
+#look at crosstab
+CrossTable(data$degree_factor, data$news_factor, fisher = FALSE, chisq = TRUE, expected = TRUE, sresid = FALSE, format = "SPSS")
+
+```
+
+```{r}
+```
+
+
+What are the null and alternative hypotheses for your test?
+
+
+```{r}
+
+#Notes from class:
+#The Chi-square test of independence tests whether the columns are contingent on the rows in the table. In other words, are the two variables independent or not? 
+#Null hypothesis: The two variables are independent of one another (no relation)
+#Alternative: The two variables are NOT independent. 
+
+#Null Hypothesis: The recoded variables for degree and newsfrom are independent of one another. 
+#Alternative Hypothesis: The recorded variables for degree and newsfrom are NOT independent of one another. 
+
+
+```
+
+
+
+What test statistic do you get?
+
+```{r}
+
+#The chi-squared value I got is 42.94872
+
+#Pearson's Chi-squared test 
+#------------------------------------------------------------
+#Chi^2 =  42.94872     d.f. =  6     p =  1.194008e-07 
+
+
+ 
+#       Minimum expected frequency: 5.54796 
+
+```
+
+
+What p-value do you get?
+
+```{r}
+
+#the p-value I got is 1.194008e-07
+
+```
+
+
+Is the Fisher’s Exact Test necessary? (True or False)
+
+```{r}
+
+#False.
+
+```
+
+
+
+Explain why Fisher's test is or is not necessary. If Fisher’s test is necessary, run Fisher’s test and upload a screenshot of the output along with your explanation. If Fisher’s test is not necessary, you only need to explain why.
+
+```{r}
+#According to the slides from class, Fisher's exact test is an alternative way to calculate the p-value when the table has EXPECTED frequencies less than 5. It also says we don't need to use Fisher's exact test if the observed frequencies are less than five. Even though the lowest observed frequency is 4, the lowest expected frequency is just above 5 so we don't have to run Fisher's exact test. 
+
+#look at the minimums for the Fisher's exact test assessment. 
+min(cs$expected)
+min(actual)
+
+
+# -------------- THIS IS NOT NEEDED ----------------------------------------
+
+# Run fisher's test just to show that I looked at the file:
+#fisher.test(data$degree_factor, data$news_factor)
+#I get a workspace error anyway...
+
+```
+
+
+Conduct an appropriate effect size calculation for the Chi-square test of independence and report the value. 
+
+```{r}
+
+cramersV(data$degree_factor, data$news_factor)
+
+```
+
+
+Interpret the effect size.
+
+```{r}
+
+#According to the text "we use the effect size in the sample to estimate the likely size of the effect in the population." Cramer's V is an effect size measurement for the chi-square test that reveals how strongly two categorical variables are associated. This effect size value of 0.15 is moderately low according to Coye and the text. Therefore, I would estimate these categorical fields are weakly associated in the sample and that may also be the case in the population. But this cannot be stated for certain. 
+```
+
+
+Upload a screenshot of the cross-table that includes the standardized residuals, chi-squared contribution, etc. for each cell (look at the class examples).
+
+```{r}
+
+#look at this crosstab
+#CrossTable(data$degree_factor, data$news_factor, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+#I CAN'T KNIT THE FILE IF I UNCOMMENT THIS. I WILL ONLY INCLUDE THE SCREENSHOT. 
+
+```
+
+
+What cells from the cross-table, if any, are especially statistically significant (and how do you know)?
+
+```{r}
+#I am not exactly sure whether individual cells can be considered statistically significant. I would imagine if the entire test is deemed statistically significant with a p-value of 1.194008e-07 (based on my chosen alpha of 0.05), then the chi-squared value is statistically significant? Beyond that I would look at the individual chi-squared values that contribute the most to this measure.
+
+# - TV & 4-Year College or More (chi-squared contribution = 10.809)
+# - TV & High School or Less (chi-squared contribution =  9.092)
+# - Internet & 4-Year College or More (chi-squared contribution = 7.756)
+# - Internet & High School or Less (chi-squared contribution = 6.589)
+
+#I know the next question asks about standardized residuals which would in essence be related to these values but these specific values are for this statistical analysis and have not been standardized to provide any information that can be made relative to information outside of this analysis (practical significance).
+
+
+
+```
+
+
+What cells from the cross-table, if any, are especially practically significant (and how do you know)? 
+
+```{r}
+
+#First, the Chi-Square value of the entire test is statistically significant (like identified in the last question).
+#The cells that are definitely worth further exploration are (in order):
+
+# - TV & 4-Year College or More (standard residual value = -3.288)
+# - TV & High School or Less (standard residual value = 3.015)
+# - Internet & 4-Year College or More (standard residual value = 2.785)
+# - Internet & High School or Less (standard residual value = -2.567 )
+
+#Looking at the standardized residuals according to the text book on page 269. "...in a normally distributed sample, 95% of z-scores should lie between -1.96 and +1.96, 99% should like between -2.58 and +2.58, and 99.9%... should lie between -3.29 and +3.29." 
+
+#Although I did not test for a normal distribution of the curve, these z-scores are pretty extreme.
+
+#"..standardized residuals with an absolute value greater than 3.29 (simplified to 3) are cause for concern because in an average sample a value this high is unlikely to happen by chance" (p.269)
+#"When the absolute value of the residual (R) is greater than 2.00, the researcher can conclude it was a major influence on a significant chi-square test statistic." (class slides) 
+#Larger residuals indicate larger real-world difference (class slides)
+
+
+
+
+```
+
+
+
+
+
+Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude from your results?
+
+```{r}
+#Given my chosen alpha of 0.05, The p-value of the chi-squared test suggests strong evidence to reject the null hypothesis. That is to say that the variables newsfrom and degree are NOT INDEPENDENT of one another. While the correlation is statistically significant, it has a relatively low practical significance overall in light of the Cramer's V value. In regards to the individual cells, it is worth further exploration into the relationship between being more or less educated and getting news from TV vs. the Internet. These values contributed to the majority of the findings of the statistical analysis. In my own terms, this model may not predict how these specific variables are related in the population overall (since they had a higher measured practical significance in a test that had a low effect size overall).
+```
+
+
+Conduct a correlation analysis to examine the association between children (childs) and hours per week using Internet outside email (wwwhr). Assume that you do not have a directional hypothesis. Make sure to set any missing values for childs and wwwhr, but keep any values that are grouped at or above some number (e.g., values coded as “8 or more” for childs should be kept as 8 in your data). Upload a screenshot of the correlation analysis output.
+
+```{r}
+
+#Running Pearson's Correlation because these are two interval/metrics variables. 
+
+#check the values in the childs column
+#print(sort(unique(data$childs), decreasing = FALSE))
+#values are : 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+
+#Codebook data: (page 175)
+# 0 - None
+# 1 - One
+# 2 - Two
+# 3 - Three
+# 4 - Four
+# 5 - Five
+# 6 - Six
+# 7 - Seven
+# 8 - Eight or more
+# 9 - No Answer, Don't Know
+
+data$childs <- replace(data$childs, data$childs == 9, NA)
+print(sort(unique(data$childs), decreasing = FALSE))
+
+#check the values in the wwwhr column
+#print(sort(unique(data$wwwhr), decreasing = FALSE))
+#values are : -1 - 12, 14-18, 20-21, 24-25, 27-28, 30, 35-36, 38, 40, 45, 47-48, 50, 56, 60, 65, 70, 72, 75, 80, 86, 90, 100, 120, 140, 998, 999
+
+#Codebook data: (page 175)
+# 0 - 997 - Value As Reported
+# 998 - Don't know
+# 999 - No Answer
+# - 1 - Not Applicable
+
+data$wwwhr <- replace(data$wwwhr, data$wwwhr >= 998 | data$wwwhr < 0, NA)
+print(sort(unique(data$wwwhr), decreasing = FALSE))
+
+#create the degree_factor column with 0 & 1 as high school or less, 2 as 2-year
+cor.test(data$childs,data$wwwhr)
+```
+
+
+
+What are the null and alternative hypotheses for your test?
+
+```{r}
+#null hypothesis: There is no linear correlation between the two variables.
+#alternative hypothesis: There is a linear correlation between the two variables. 
+
+#this is a two-tailed test (non-directional)
+
+```
+
+
+What test statistic do you get?
+
+```{r}
+# the correlation coefficient I got is -0.1382344 
+```
+
+
+What p-value do you get?
+
+```{r}
+# the p-value I got is 0.0001227
+```
+
+
+
+Interpret the statistical significance of your correlation.
+
+```{r}
+# Given my chosen alpha of 0.05, the p-value is statistically significant which means that we can reject the null hypothesis. This means that there is a linear correlation between these two variables (children and hours on the internet).
+```
+
+
+
+Interpret the practical significance of your correlation.
+
+```{r}
+#The low correlation coefficient is negligibly practically significant. There is a very very very weak negative correlation that would be enough to have statistical significance but no derived practical effect. 
+```
+
+
+
+Create a scatterplot between childs and wwwhr. Upload a screenshot of the scatterplot. 
+
+```{r}
+
+library(ggplot2)
+
+# Ok, now lets plot the jitter scatterplot with the simple
+# linear regression line (line of best fit)
+ggplot(data, aes(x=data$childs, y=data$wwwhr)) + geom_jitter() + geom_smooth(method=lm, se=FALSE)
+
+
+```
+
+
+
+
+In a few sentences, fully explain what you can say about the strength and type of relationship between the two variables in the scatterplot in light of the correlation coefficient.
+
+```{r}
+
+#According to the graph, there is a very weak, negatively-correlated relationship between the number of children that the participants reported having and the number of hours per week they spent on the internet (outside of email). As the number of children increases, the amount of hours per week spent on the internet (outside of email) decreases. 
+
+```
+
+
+Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude from your results? 
+
+
+```{r}
+#The correlation is debatable. While the data suggests statistical significance, the practical significance is marginal at best. But it makes sense. The values at the high extremes for both variables (a lot of hours on the internet and a lot of kids) are particularly thin. Just because the majority of the data overlaps in the lower values for both variables does not mean that they are inherently related. I can't conclusively say they are and the low correlation coefficient would suggest that this may just be a matter of coincidence. Outside of the data: I would imagine having less kids would give you the time to surf the internet but this is a baseless hypothesis. 
+
+```
+
+
+
+Check assumptions and conduct an appropriate t-test to examine the association between attitudes about school spending (spschool) and sex. Assume you do not have a directional hypothesis for differences in spschool between male and female respondents. Make sure to set any appropriate missing values for both variables. You should set “Can’t choose”, “No answer” and “Not applicable” to NA for your spschool variable. Upload a screenshot of the appropriate test result output.
+
+```{r}
+#Checking Assumptions
+#Assumption of Normality -->  N is greater than 30 so we can go ahead.
+#Assumption of Homogeneity of Variance --> don't have to do this because we used a modified t-test (Welch's t-test) which corrects for the problem of unequal variances.
+
+print(sort(unique(data$spschool), decreasing = FALSE))
+
+spending <- replace(data$spschool, data$spschool >= 8 | data$wwwhr < 1, NA)
+#data <- mutate(data, spending = case_when(
+#  spschool == 0 ~ as.integer(NA),
+#  spschool == 1 ~ as.integer(1),
+#  spschool == 2 ~ as.integer(2),
+#  spschool == 3 ~ as.integer(3),
+#  spschool == 4 ~ as.integer(4),
+#  spschool == 5 ~ as.integer(5),
+#  spschool == 8 ~ as.integer(NA),
+#  spschool == 9 ~ as.integer(NA)
+#))
+
+# head(data$spending)
+
+#Edit spschool directly instead.
+data$spschool <- replace(data$spschool, data$spschool == 0, NA)
+data$spschool <- replace(data$spschool, data$spschool == 8, NA)
+data$spschool <- replace(data$spschool, data$spschool == 9, NA)
+
+#print(sort(unique(spending), decreasing = FALSE))
+#codebook page 2127
+
+# 1 - Spend Much More
+# 2 - Spend More
+# 3 - Spend the Same As Now
+# 4 - Spend Less
+# 5 - Spend Much Less
+# 8 - Can't Choose
+# 9 - No Answer
+# 0 - Not Applicable
+
+
+#codebook page 203
+# 1 - Male
+# 2 - Female
+#print(sort(unique(data$sex), decreasing = FALSE))
+
+#t.test(spending ~ data$sex, data = )
+t.test(data$spschool ~ data$sex, data=data)
+#t.test(data$spending ~ data$sex, alternative = "two.sided", conf.level = 0.95, var.equal = FALSE, data=data) # --> SAME VALUES
+```
+
+
+
+What assumptions did you test? Explain why it was necessary to test each assumption that you chose.
+
+
+```{r}
+#Checking Assumptions
+#Assumption of Normality -->  N is greater than 30 (n=911) so because of the central limit theory, we don't have to check for normality. 
+#Assumption of Homogeneity of Variance --> don't have to do this because we used a modified t-test (Welch's t-test) which corrects for the problem of unequal variances.
+```
+
+
+
+Did these assumptions affect the test that you conducted? Explain your reasoning.
+
+```{r}
+#No because the t-test assumes that the sampling distribution of the difference in the means in normally distributed and we used a Welch's t-test which accounts for any lack of homogeneity in the variances. 
+```
+
+
+What are the null and alternative hypotheses for your test?
+
+```{r}
+#null hypothesis: The means of the two samples (groups split by sex) are equal.
+#Alternative hypothesis for a two-tailed test: the means of the two samples (groups split by sex) are not equal. 
+
+```
+
+
+What test statistic do you get?
+
+```{r}
+#  The t value is 0.45391. The mean school spending for men is 1.97 and the mean school spending for women is 1.95. 
+```
+
+
+What p-value do you get?
+
+```{r}
+#the p-value is 0.65.
+```
+
+
+Calculate Cohen’s d.
+
+```{r}
+#install.packages("lsr")
+library("lsr")
+library("tidyverse")
+
+#data <- mutate(data, sex_recode = case_when(
+#  sex == 1 ~ as.factor(1),
+#  sex == 2 ~ as.factor(2)
+#))
+
+#cohensD(spending, data$sex_recode)
+#this does not work... Idk what's up. 
+#the tilde doesn't work either... idk.
+
+#cohensD(data$spending, data$sex) # THIS VALUE IS 0.5828778 something
+#cohensD(data$sex, data$spending) # --> POSITIVE
+#cohensD(data$spending, data$sex)
+
+#install.packages("effsize")
+library("effsize")
+
+#cohen.d(spending ~ sex, na.rm=TRUE)
+#cohen.d(data$sex, data$spending, na.rm=TRUE) # --> NEGATIVE
+
+#lapply(data, levels)
+#levels(data$sex)
+#Why are my levels null??? 
+#Something on Stack Overflow about Vectors... loaded my data wrong? IDK. 
+
+spending <- c(data$spschool)
+sex <- c(data$sex)
+
+cohensD(spending ~ sex)
+
+
+```
+
+
+
+Is this effect size weak, moderate, or strong? How do you know?
+
+```{r}
+# According to class if the Cohen's D value is less than 0.2, it is small which is weak. This is the generally held standard but the effect size interpretation may be contextually specific.
+
+```
+
+
+Calculate effect size correlation r.
+
+```{r}
+
+ttestvals <- t.test(spending ~ sex)
+t <- ttestvals$statistic[[1]]
+df <- ttestvals$parameter[[1]]
+
+r <- sqrt(t^2/(t^2+df))
+round(r,3)
+```
+
+
+Is this effect size small, medium, or large? How you know?
+
+```{r}
+#the effect size is small. 
+
+#How I know??? 
+```
+
+
+
+Evaluate your hypothesis in light of your tests of statistical and practical significance. What, if anything, can you conclude from your results? 
+
+```{r}
+
+#In light of all of the data, there is very little difference in the average school spending between men and women. Given my chosen alpha level of 0.05, the findings are not statistically significant so we can accept the null hypothesis. The small effect size is expected because it only explains the magnitude of the difference, which has already been revealed to be no real difference. This is how I would interpret this data based on this context but in another measure (where more precision is required), the very slight difference in the means might be important. 
+
+```
+
+
+
+
+
