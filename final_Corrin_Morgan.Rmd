@@ -1,0 +1,751 @@
+---
+title: "final_Morgan_Corrin"
+author: "Corrin Morgan"
+date: "2023-12-08"
+output: html_document
+---
+
+```{r}
+#load the data into the file.
+load('final_gss.rdata')
+data <- gss
+```
+
+Let us assume that you are an analyst working on a research team, and your task is to conduct a nested, linear regression analysis using public data from the 2016 US general social survey. Your team leaders asked you to include specific independent variables because they thought that they might be associated with one’s political views in the US. 
+
+Important Points:
+
+Please pay close attention to missing values. In this data analysis section, values like “No answer”, “Don’t know,” and “Not applicable” should be set to missing (NA), unless we specifically state otherwise. 
+Any variables which code all values above a certain value at that value should be left in your data. For example, if “89 or more” is coded as 89 in your data, it should be left as 89 in your data. 
+Do not transform any of the variables (we will ask a question about transformations later).
+
+
+
+
+
+
+
+
+Question 1:
+
+Dependent Variable: The polviews variable measures where respondents place themselves on a 7-point scale from extremely liberal (1) to extremely conservative (7). We will be treating this Likert-style scale as metric and using it to create a new dependent variable for our regression.  Create a new variable, “liberalism” from the polviews variable. Your new liberalism variable should range from 1-7, where higher values correspond to being ‘more liberal’ and lower values correspond to being ‘more conservative’. Set any missing values appropriately for your liberalism variable. 
+
+Upload a screenshot of the output “table(gss$liberalism, gss$polviews)” below. 
+
+```{r}
+
+#check the codebook for the polviews value interpretations:
+#0 = Not Applicable
+#1 = Extremely Liberal 
+#2 = Liberal
+#3 = Slightly Liberal
+#4 = Moderate
+#5 = Slightly Conservative
+#6 = Conservative 
+#7 = Extremely Conservative
+#8 = Don't know
+#9 = No Answer
+
+
+#check the polviews data for any strange variables
+#print(sort(unique(gss$polviews), decreasing = FALSE))
+#values = 1 2 3 4 5 6 7 8 9
+
+
+#install tidyverse
+#install.packages("tidyverse")
+library("tidyverse")
+
+#create the liberalism column where 7 is the most liberal and 1 is the least liberal. Set 0, 8, and 9 as NA. 
+gss <- mutate(gss, liberalism = case_when(
+  polviews == 0 ~ as.integer(NA), #there is no 0 in the data but including for completion purposes
+  polviews == 1 ~ as.integer(7),
+  polviews == 2 ~ as.integer(6),
+  polviews == 3 ~ as.integer(5),
+  polviews == 4 ~ as.integer(4),
+  polviews == 5 ~ as.integer(3),
+  polviews == 6 ~ as.integer(2),
+  polviews == 7 ~ as.integer(1),
+  polviews == 8 ~ as.integer(NA),
+  polviews == 9 ~ as.integer(NA)
+))
+
+#check the table to see if they recoded correctly
+table(gss$liberalism, gss$polviews)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+Question 2: 
+
+Independent Variables: We’ll be creating and using the following independent variables to run a series of nested regressions with liberalism as our outcome variable.
+
+gunowner (created from owngun)
+educ (from variable educ) 
+laser_wrong (created from variable lasers)
+laser_right (created from variable lasers) 
+laser_dk (created from variable lasers) 
+
+Using the owngun variable, create a binary integer dummy variable gunowner, where having a gun in the house = 1, not having a gun in the house = 0. No answer, not knowing, not applicable, or refusing to answer should all be considered missing values for our new variable.
+
+Upload a screenshot of the output of “table(gss$gunowner, gss$owngun)” below. 
+
+
+```{r}
+#check owngun in codebook:
+# 9 = no answer
+# 8 = don't know
+# 3 = Refused
+# 2 = No
+# 1 = Yes
+# 0 = Not applicable
+
+#check the values to make sure there is nothing weird
+#print(sort(unique(gss$owngun), decreasing = FALSE))
+#values = 1 2 3 8
+
+#create the column gunowner (binary, 1 for yes, 0 for no)
+gss <- mutate(gss, gunowner = case_when(
+  owngun == 0 ~ as.integer(NA),
+  owngun == 1 ~ as.integer(1),
+  owngun == 2 ~ as.integer(0),
+  owngun == 3 ~ as.integer(NA),
+  owngun == 8 ~ as.integer(NA),
+  owngun == 9 ~ as.integer(NA)
+))
+
+
+#check the table to see if the new column is correct
+table(gss$gunowner, gss$owngun)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+Question 3:
+
+Set missing values appropriately for the educ variable. 
+
+Upload a screenshot of the output of “table(gss$educ)” below. 
+
+```{r}
+#check educ in codebook:
+#99 = no answer
+#98 = don't know
+#97 = not applicable
+
+#check the values of the column currently
+#print(sort(unique(gss$educ), decreasing = FALSE))
+#values = 2  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 99
+
+#check the original table for comparison
+#table(data$educ)
+
+#replace the values over 96 with NA
+gss$educ <- replace(gss$educ, gss$educ > 96, NA)
+
+#check the table
+table(gss$educ)
+
+```
+
+
+
+
+
+
+
+
+
+
+Question 4:
+
+Examine the lasers variable carefully, noting the exact question that respondents read, as well as the possible responses. If needed, set appropriate missing values for ‘no answer’ or ‘not applicable’. As explained below, we will not be counting the ‘don’t know’ responses as missing values this time.
+
+The ‘lasers’ question asks respondents if “lasers work by focusing sound waves”. The correct answer is ‘false’. We want to know if getting this answer correct is associated with one’s political views. Thus, we will create three new dummy variables for those who answered right, wrong, and those who did not know: laser_right, laser_wrong, and laser_dk. For example, in the laser_wrong variable, 1 would correspond to answering ‘true’, and 0 would correspond to answering ‘false’ or ‘don’t know’. 
+
+Upload a screenshot of the output of “table(gss$lasers, gss$laser_wrong)”, “table(gss$lasers, gss$laser_right)”, and “table(gss$lasers, gss$laser_dk)” below. 
+
+
+```{r}
+#check the lasers variable in the codebook
+#the question:
+#Now, I would like to ask you a few short questions like those you might see on a television game show. for each statement that I read, please tell me if it is true or false. If you don’t know or aren’t sure, just tell me so,  and we will skip to the next question. Remember true, false, or don’t know. D. Lasers work by focusing sound waves. (Is that true or false?)
+
+# 9 = no answer
+# 8 = don't know # DO NOT RECODE AS N/A!
+# 2 = False
+# 1 = True
+# 0 = Not applicable
+
+#recode the no answer and not applicable as NA
+gss$lasers <- replace(gss$lasers, gss$lasers == 0 | gss$lasers == 9, NA)
+
+#create the laser_wrong dummy variable
+gss$laser_wrong = as.integer(ifelse(gss$lasers == 1,1,0))
+
+#create the laser_right dummy variable
+gss$laser_right = as.integer(ifelse(gss$lasers == 2,1,0))
+
+#create the laser_dk dummy variable
+gss$laser_dk = as.integer(ifelse(gss$lasers == 8,1,0))
+
+#check the laser_wrong table
+table(gss$lasers,gss$laser_wrong)
+
+```
+```{r}
+#check the laser_right table
+table(gss$lasers,gss$laser_right)
+```
+```{r}
+#check the laser_right table
+table(gss$lasers,gss$laser_dk)
+```
+
+
+
+
+
+
+
+
+
+Question 5:
+
+Creating our Dataframe: Create a new dataframe, gss_lim, that contains only rows with non-missing values for liberalism, gunowner, educ, laser_wrong, laser_right, and laser_dk. Make sure gss_lim also only contains the above six columns.  Upload a screenshot of the dimensions and a screenshot of the columnames of the dataframe you created below.
+
+```{r}
+lim_rows = complete.cases(gss$liberalism, gss$gunowner, gss$educ, gss$laser_wrong, gss$laser_right, gss$laser_dk)
+
+
+# Pull those rows out to create a subset of the dataset
+gss_lim = gss[lim_rows,c('liberalism', 'gunowner', 'educ', 'laser_wrong', 'laser_right', 'laser_dk')]
+
+#dimensions of the dataframe
+dim(gss_lim)
+
+#column names
+colnames(gss_lim)
+```
+
+
+
+
+
+
+
+
+
+
+Question 6:
+How many cases are left in gss_lim? 
+
+840
+
+
+
+
+
+
+
+
+Question 7:
+Upload a screenshot of the output of summary(gss_lim) and dim(gss_lim) below. 
+```{r}
+summary(gss_lim)
+```
+```{r}
+dim(gss_lim)
+```
+
+
+
+
+
+
+
+
+--------------------PART 2--------------------------
+
+
+
+
+
+
+
+
+
+
+
+Question 1:
+Regression Model 1: Fit an OLS model to gss_lim from the previous step that predicts liberalism (dependent variable) as a function of gunowner (independent variable).  
+
+Explain why the regression is significant or not.
+
+
+```{r}
+#notation --> lm(y~x) y as a function of x. 
+model_1 = lm(liberalism ~ gunowner, data = gss_lim)
+summary(model_1)
+```
+
+To check for significance, I first looked at the f-statistic value. The f-statistic checks to see if at least one independent variable (in our current case, there is only one) improves the model fit compared to a model with no independent variables. The f-statistic is significantly greater than 1 which suggests that the independent variable does improve the model fit. Next, I checked the R-squared value which can be interpreted to say 2.24% of the variation in liberalism is explained by the variation of the model. While the impact may be small, it still appears to be statistically significant (according to the other checks).
+
+Next I checked the estimate column which shows there is a negative significant relationship between gunownership and liberalism. The p-value is statistically significant for my chosen alpha of 0.05 so I can reject the null hypothesis and say that the independent variable of gun ownership has a relationship to liberalism that is likely not due to chance. 
+
+
+
+
+
+
+
+
+
+
+
+
+Question 2:
+What is the slope coefficient? 
+
+-0.49257
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 3:
+Including statistical significance, interpret how the coefficient of gunowner relates to the dependent variable in Model 1. 
+
+There is a negative significant relationship between gun ownership and liberalism. The p-value is statistically significant for my chosen alpha of 0.05 so I can reject the null hypothesis and say that the independent variable of gun ownership has a relationship to liberalism that is likely not due to chance. The coefficient itself indicates that as liberalism increases, gun ownership decreases.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 4:
+Regression Model 2: Now fit a second OLS model to gss_lim.  Keep liberalism as your dependent variable, but now use both gunowner and educ as your explanatory variables.  
+```{r}
+model_2 = lm(liberalism ~ gunowner + educ, data = gss_lim)
+summary(model_2)
+
+```
+
+As mentioned before, the f-statistic indicates that the independent variables (now gunowner and educ) improve the model fit. It is significantly greater than 1 which suggests that these independent variables improve the model fit. There is a higher variation between the identified groupings than within them. 
+
+The R-squared value which can be interpreted to say 5.25% of the variation in liberalism is explained by the variation of the model (as related to gun ownership and education). While the impact may be small, it still appears to be statistically significant. The p-value for the overall test is highly statistically significant in regards to my chosen alpha of 0.05 which suggests that the relationship between these three variables may not be due to chance.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 5:
+What is the slope coefficient for educ? 
+
+0.0941
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 6:
+Including statistical significance, interpret how the coefficients of educ and gunowner relate to the dependent variable in Model 2.
+
+There is a positive significant relationship between education and liberalism, controlling for gun ownership. As stated before, there is a negative significant relationship between gun ownership and liberalism, controlling for education. In oversimplified terms, the model suggests that as education increases, liberalism increases and gun ownership decreases. While the nature and degree of the relationship might be small, that is the direction of the trend.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 7:
+Discuss any meaningful changes for the gunowner variable between Model 1 and Model 2 (i.e., after including the educ variable). 
+
+Between the two models, the coefficient for gunowner changed from -0.49256 to -0.51163. Introducing education into the model means that there could be a meaningful relationship between these three variables as the magnitude of the slope increased. In layman's terms, when education is considered, the relationship between gun ownership and liberalism appears to be slightly stronger. This, however, is only speculation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 8:
+Regression Model 3: Time to fit a third OLS model. To conduct our analysis, we need to drop one of the dummy variables about lasers for our regression. We will drop the laser_wrong variable. 
+
+Keeping liberalism as your dependent variable, and gunowner and educ as your explanatory variables, now add laser_right and laser_dk as your third and fourth explanatory variables. 
+
+Explain why the regression is significant or not.
+
+```{r}
+#I think I did this wrong?? Do we have to make laser a single category?? And tell it to skip laser wrong? 
+model_3 = lm(liberalism ~ gunowner + educ + (laser_right + laser_dk), data = gss_lim)
+summary(model_3)
+
+```
+
+I would say that the regression is not significant. While the f-statistic is still significantly greater than 1, the value is decreasing. This indicates that the added variables (laser_right and laser_dk) are not providing a significant improvement to explaining the variance. The R-squared value has also not increased significantly. While the p-value indicates statistical significance, I would be hesitant to say that this model improves upon model two.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 9:
+What is the slope coefficient for laser_right? 
+0.3557
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 10: 
+What is the slope coefficient for laser_dk? 
+0.1914
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 11:
+Including statistical significance, provide a precise interpretation of the coefficient for each of the variables in Model 3 as they relate to the dependent variable.
+
+Given my chosen alpha of 0.05, there is a positive moderately significant relationship between whether people got the laser question right and liberalism, controlling for gun ownership and education. It is unsure, however, whether this might be a spurious relationship.
+
+The estimate also indicates that there is a positive relationship between whether people did not know the answer to the laser question or not and liberalism, when controlling for gun ownership and education. This relationship, however, was not found to be statistically significant given my chosen alpha of 0.05.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 12: 
+Discuss any meaningful changes for the gunowner and educ variables between Model 2 and Model 3 (i.e., after including the laser_right and laser_dk variables).
+
+The magnitude of the relationship between liberalism and gun ownership seems to have increased with the addition of the laser_right and laser_dk variables. The value has increased in magnitude with every model. This could indicate that some suppression is occurring. These variables (educ, laser_right, and laser_dk) could be accentuating the relationship between liberalism and gun ownership. It could also indicate a special relationship between those three variables outside of this model.
+
+In accordance with that point, the slope contribution of the education variable, however, has decreased in magnitude. Even though this variable still has a statistically significant contribution to the model (albeit a small slope contribution), this could me indicative of multicollinearity. It might be worth exploring whether there is a correlation between education and their laser response, as multicollinearity would suggest a potential redundancy or high correlation between that value and the newly added variables.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 13:
+Model Comparisons: Compute the F-statistics and associated p-values between your three regression models. Upload a screenshot of your output that shows all the F and P values.
+
+```{r}
+anova(model_1, model_2, model_3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 14:
+Interpret the F-statistics and associated p-values to explain if there is a statistically significant improvement from Model 1 to Model 2 & from Model 2 to Model 3.
+
+The difference in the F-statistic between model one and two would indicate that the model improved significantly based on the addition of the educ variable. Because the change in the F-statistic for model three is significantly lower than that of model 2, this may indicate that the addition of the laser_right and laser_dk variables did not significantly improve the model fit. While the p-value would suggest that the model fit is still statistically significant, it considerably less high which could indicate a decrease in the perceived certainty of the likelihood that this finding is merely chance. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 15:
+Compute the AIC values for Model 1, 2 and 3. Upload a screenshot of your result that shows all your AIC values.
+
+```{r}
+AIC(model_1)
+AIC(model_2)
+AIC(model_3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 16:
+What do the AIC values tell you as you compare between the three models? 
+
+The Akaike Information Criterion (AIC) values are a parsimony-adjusted measure of fit that penalize the model for having more variables. This value is completely relative to the other values. Because the AIC values decreasing would indicate that the models are improving. However, the difference between model one and two versus model two and three is different. Given our findings before, model three might still be a parsimonious fit but only marginally improving upon model two.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 17:
+Explain what the adjusted R2 values for Model 1, 2 and 3 tell you as you compare between the three models.
+
+The adjusted r-squared values measure the proportion of variance in the dependent variable as explained by the independent variables (collectively) to the model, while accounting for the number of variables included. The adjusted R-squared values increased drastically between model 1 and model 2. The increase from model 2 to model 3 is significantly smaller by comparison. The increase in the R-squared value suggests that the added independent variable contribute to explaining more of that variation while considering the model's complexity (hence adjusted).
+
+
+
+
+
+
+
+
+
+
+
+
+
+Regression Diagnostics: Now we will ask you to examine the diagnostic plots for your 3rd regression (the full model), and test for heteroskedasticity of residuals for the model. Please note that if we did find a problem, we would probably re-run all our regressions with an appropriate linear transformation. However, for our purposes we are only going to check to see if we should re-run our regressions or not.
+
+Examine the diagnostic plots for your 3rd regression (Model 3). 
+
+
+
+```{r}
+plot(model_3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+Question 18:
+Based on your visual inspection, explain whether the Q-Q plot indicates normality or not.
+
+Based on my own visual inspection, the Q-Q plot would suggest a lack of normality. The curving of the data at the tails and the "wavy" alignment of the data along the 45-degree line suggests that there may be some skew in the data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 19:
+What is your p-value for the heteroskedasticity test?
+
+```{r}
+library("car")
+ncvTest(model_3)
+```
+
+0.045793
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 20:
+Based on the p-value, is it significant?
+
+Given my chosen alpha of 0.05, this p-value is BARELY statistically significant. While I could technically reject the null hypothesis, I would be hesitant. I can't say anything about practical significance or the effect size based on the p-value but they should also be taken into account when considering the nature of this significance. The p-value alone is not enough.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 21:
+
+If the heteroskedasticity test is not significant, you can stop here (put N/A to this question if this is the case).
+
+If it is significant, state the power transformation that R suggests applying to your dependent variable to help address the problem. 
+```{r}
+#install.packages("lmtest")
+library("lmtest")
+bptest(model_3)
+```
+IT DEPENDS ON WHAT TEST YOU RUN.
+
+According to the ncvtest, the heteroscedasticity test is barely significant. In that case, the recommended power transformation is either a square root or log transformation (depending on whether data varies from the mean exponentially).
+
+In looking at the results of the Breusch-Pagan test, the p-value is not statistically significant which means there is not enough evidence to reject the assumption of constant variance (or heteroscedasticity). This would be N/A.
+
